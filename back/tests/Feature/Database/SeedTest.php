@@ -8,10 +8,12 @@ use App\Models\CompanyRepresentative;
 use App\Models\Event;
 use App\Models\EventDay;
 use App\Models\Meeting;
+use App\Models\Occurrence;
 use App\Models\Participant;
 use App\Models\Role;
 use App\Models\SchoolClass;
 use App\Models\Sector;
+use App\Models\Task;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
@@ -47,7 +49,7 @@ class SeedTest extends TestCase
         $this->assertSame(3, User::query()->count()); // admin + gestor + editor de exemplo
         $this->assertSame(1, Event::query()->count());
         $this->assertSame(3, EventDay::query()->count());
-        $this->assertSame(2, Sector::query()->count());
+        $this->assertSame(3, Sector::query()->count()); // setores de exemplo A, B e C
         $this->assertSame(1, Meeting::query()->count());
         $this->assertSame(3, SchoolClass::query()->count());
         $this->assertSame(12, Participant::query()->count());
@@ -57,6 +59,9 @@ class SeedTest extends TestCase
         $this->assertSame(3, CompanyRepresentative::query()->count());
         $this->assertSame(5, Challenge::query()->count());
         $this->assertSame(1, Team::query()->whereNotNull('challenge_id')->count());
+        $this->assertSame(5, Task::query()->count());
+        $this->assertSame(4, Occurrence::query()->count());
+        $this->assertSame(1, Task::query()->whereNotNull('source_occurrence_id')->count());
     }
 
     public function test_development_admin_exists_in_testing_linked_to_a_person(): void

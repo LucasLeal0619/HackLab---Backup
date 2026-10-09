@@ -223,12 +223,19 @@ Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCo
 | `companies.manage` | ✓ | | | | | |
 | `challenges.view` | ✓ | ✓ | ✓ | ✓ | | |
 | `challenges.manage` | ✓ | | | | | |
+| `tasks.view` / `occurrences.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `tasks.comment` / `occurrences.comment` | ✓ | ✓ | ✓ | ✓ | | |
+| `tasks.create` / `occurrences.create` | ✓ | ✓ | ✓ | | | |
+| `tasks.operate` / `occurrences.operate` | ✓ | ✓ | ✓ | | | |
+| `tasks.route` / `occurrences.route` | ✓ | ✓ | | | | |
 
 Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Novas permissões entram junto com os módulos que as usam.
 
 **Escopo (Fase 2):** a Policy combina permissão + escopo. Quem tem setor (Gestor, Editor) só alcança o próprio setor; quem não tem setor (Administrador, Consultor) tem alcance global, limitado pelas permissões. Criar setor, ativar/inativar setor e gerenciar evento e reunião geral exigem alcance global.
 
 Turmas, participantes e equipes (Fase 3) e empresas e desafios (Fase 4) são globais ao evento: só permissão, sem escopo setorial e sem `sector_id`.
+
+Pendências e ocorrências (Fase 5): permissão **e** participação do setor. `operate` sozinho (Editor) = status, concluir/resolver, reabrir; `operate` + `route` (Gestor, Administrador) = também conteúdo, prioridade, prazo, responsável individual, envolvidos e criação para outro setor; `route` = encaminhar. Ver/comentar exige o setor ser origem, responsável ou envolvido; operar e encaminhar exigem ser o responsável atual. Gerar pendência a partir de ocorrência = `tasks.create` + `occurrences.route` + setor relacionado.
 
 ### events
 
@@ -484,87 +491,106 @@ Reunião geral: `sector_id` nulo. FK composta `(sector_id, event_id) → sectors
 
 ### tasks
 
+Pendência = algo que precisa ser feito.
+
 ```text
 id
 event_id FK
+reference            PEN-0001... gerada pelo banco (sequence), nunca pelo cliente
 title
 description
-origin_sector_id FK
-responsible_sector_id FK
+origin_sector_id FK          nunca muda
+responsible_sector_id FK     muda só por encaminhamento
 assigned_user_id FK nullable
-priority
-status
+priority             LOW | MEDIUM | HIGH | URGENT
+status               PENDING | IN_PROGRESS | COMPLETED
 due_at nullable
-source_occurrence_id FK nullable
+source_occurrence_id FK nullable   imutável; não é unique (uma ocorrência gera várias)
 created_by_user_id FK
-resolved_at nullable
+resolved_at nullable         preenchido em COMPLETED; volta a null na reabertura
 created_at
 updated_at
 ```
 
+- FKs compostas com `event_id`: origem, responsável e `source_occurrence_id` são do mesmo evento.
+- `unique(id, event_id)` como alvo das FKs compostas de `task_sectors`.
+- Trigger: `reference`, `origin_sector_id`, `source_occurrence_id` e `event_id` não mudam depois da criação.
+- Trigger: com a pendência aberta, `assigned_user_id` precisa ser usuário ativo do setor responsável.
+- Sem DELETE.
+
 ### task_sectors
 
-Setores envolvidos.
+Somente setores **adicionais** envolvidos (não repete origem nem responsável).
 
 ```text
 task_id FK
 sector_id FK
-unique(task_id, sector_id)
+event_id
+primary key(task_id, sector_id)
 ```
 
+FKs compostas `(task_id, event_id) → tasks` e `(sector_id, event_id) → sectors`: setor envolvido é do mesmo evento.
+
 ### task_interactions
+
+Histórico contextual da pendência (não é auditoria). Somente inserção (trigger).
 
 ```text
 id
 task_id FK
 user_id FK nullable
-type
+type      CREATED | UPDATED | COMMENT | STATUS_CHANGED | FORWARDED | ASSIGNEE_CHANGED | PRIORITY_CHANGED
+          | DUE_CHANGED | SECTOR_ADDED | SECTOR_REMOVED | COMPLETED | RESOLVED | REOPENED | TASK_GENERATED
 message nullable
-metadata json nullable
+metadata jsonb nullable
 created_at
 ```
-
-`type` pode representar COMMENT, STATUS_CHANGED, FORWARDED etc.
 
 ## 5. Ocorrências
 
 ### occurrences
 
+Ocorrência = algo que aconteceu.
+
 ```text
 id
 event_id FK
+reference            OCO-0001... gerada pelo banco (sequence)
 title
 description
-origin_sector_id FK
-responsible_sector_id FK
-priority
-status
+category             TECHNOLOGY | INFRASTRUCTURE | PRODUCTION | PARTICIPANT | TEAM | COMPANY | ORGANIZATION | OTHER
+origin_sector_id FK          nunca muda
+responsible_sector_id FK     muda só por encaminhamento
+assigned_user_id FK nullable
+priority             LOW | MEDIUM | HIGH | URGENT
+status               OPEN | IN_PROGRESS | RESOLVED
+event_day_id FK nullable     pode ficar fora dos dias oficiais
 occurred_at nullable
+location nullable
+team_id FK nullable
+notes nullable
+resolution nullable          preservada na reabertura; versões anteriores ficam no histórico
 created_by_user_id FK
 resolved_at nullable
 created_at
 updated_at
 ```
 
+- FKs compostas com `event_id`: origem, responsável, dia (`event_days(id, event_id)`) e equipe (`teams(id, event_id)`).
+- Categoria com check no banco (lista fechada; nova categoria = nova migration).
+- Mesmos triggers da pendência (campos imutáveis e responsável individual coerente). Sem DELETE.
+
 ### occurrence_sectors
 
-```text
-occurrence_id FK
-sector_id FK
-unique(occurrence_id, sector_id)
-```
+Mesmo padrão de `task_sectors` (somente envolvidos adicionais, com `event_id` e FKs compostas).
 
 ### occurrence_interactions
 
-```text
-id
-occurrence_id FK
-user_id FK nullable
-type
-message nullable
-metadata json nullable
-created_at
-```
+Mesmo padrão de `task_interactions` (somente inserção).
+
+### Usuário atribuído
+
+Usuário com pendência/ocorrência **aberta** atribuída não pode mudar de setor nem ser inativado (aplicação + trigger em `users`) até as demandas serem reatribuídas ou fechadas.
 
 ## 6. Jurados e avaliações
 

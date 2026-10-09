@@ -4,7 +4,9 @@ namespace App\Domain\Audit;
 
 /**
  * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings, classes, participants, teams,
- * companies, challenges.
+ * companies, challenges, tasks, occurrences.
+ *
+ * Pendências/ocorrências: comentário gera só interação (histórico), sem log de auditoria.
  */
 final class AuditAction
 {
@@ -101,4 +103,31 @@ final class AuditAction
     public const CHALLENGE_TEAM_CHANGED = 'CHALLENGE_TEAM_CHANGED';
 
     public const CHALLENGE_TEAM_UNASSIGNED = 'CHALLENGE_TEAM_UNASSIGNED';
+
+    public const TASK_CREATED = 'TASK_CREATED';
+
+    public const TASK_UPDATED = 'TASK_UPDATED';
+
+    public const TASK_STATUS_CHANGED = 'TASK_STATUS_CHANGED';
+
+    public const TASK_FORWARDED = 'TASK_FORWARDED';
+
+    public const TASK_COMPLETED = 'TASK_COMPLETED';
+
+    public const TASK_REOPENED = 'TASK_REOPENED';
+
+    public const OCCURRENCE_CREATED = 'OCCURRENCE_CREATED';
+
+    public const OCCURRENCE_UPDATED = 'OCCURRENCE_UPDATED';
+
+    public const OCCURRENCE_STATUS_CHANGED = 'OCCURRENCE_STATUS_CHANGED';
+
+    public const OCCURRENCE_FORWARDED = 'OCCURRENCE_FORWARDED';
+
+    public const OCCURRENCE_RESOLVED = 'OCCURRENCE_RESOLVED';
+
+    public const OCCURRENCE_REOPENED = 'OCCURRENCE_REOPENED';
+
+    /** Ocorrência gerou pendência: um único log (sem TASK_CREATED separado). */
+    public const OCCURRENCE_TASK_GENERATED = 'OCCURRENCE_TASK_GENERATED';
 }

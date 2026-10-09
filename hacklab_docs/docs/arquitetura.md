@@ -176,7 +176,8 @@ Pode ter:
 - setor de origem;
 - um setor responsável principal;
 - múltiplos setores envolvidos;
-- histórico/interações.
+- responsável individual do setor responsável;
+- histórico/interações (somente inserção).
 
 ### Occurrences
 
@@ -187,7 +188,12 @@ Pode:
 - ter responsável principal;
 - ter múltiplos envolvidos;
 - ser encaminhada;
-- gerar uma Pendência.
+- ser resolvida com uma solução registrada;
+- gerar uma ou várias Pendências.
+
+### Demandas (código compartilhado)
+
+Pendência e ocorrência são domínios separados, mas compartilham a mecânica de setores (origem, responsável, envolvidos), escopo, encaminhamento, atribuição e histórico em `App\Domain\Demands`. Cada domínio tem seu próprio model, service, policy, endpoints e auditoria.
 
 ### Jurors
 
@@ -284,7 +290,13 @@ Policy = permissão do perfil (PermissionCode) + escopo do usuário
 - Listagens aplicam o mesmo escopo na query (`Sector::visibleTo`, `Meeting::visibleTo`).
 - Controllers não testam nome de perfil. Endpoints de escrita autorizam no `authorize()` do Form Request, antes da validação (sem permissão = 403, sem detalhes de validação).
 
-Pendências e ocorrências (Fase 5) reutilizam esse escopo, somando setor de origem, responsável e envolvidos.
+Pendências e ocorrências (Fase 5) reutilizam esse escopo, somando setor de origem, responsável e envolvidos:
+
+```text
+vê/comenta  = permissão + (alcance global OU setor do usuário ∈ {origem, responsável, envolvidos})
+opera       = permissão + (alcance global OU setor do usuário = responsável atual)
+encaminha   = permissão de roteamento + (alcance global OU setor do usuário = responsável atual)
+```
 
 ## 7. Integração externa
 

@@ -5,9 +5,13 @@ namespace Database\Seeders;
 use App\Domain\Challenges\Enums\ChallengeStatus;
 use App\Domain\Companies\Enums\CompanyStatus;
 use App\Domain\Companies\Enums\CompanyType;
+use App\Domain\Demands\Enums\DemandPriority;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Meetings\Enums\MeetingStatus;
+use App\Domain\Occurrences\Enums\OccurrenceCategory;
+use App\Domain\Occurrences\OccurrenceService;
 use App\Domain\Participants\Enums\ParticipantStatus;
+use App\Domain\Tasks\TaskService;
 use App\Domain\Teams\Enums\TeamStatus;
 use App\Domain\Users\Enums\RoleCode;
 use App\Domain\Users\Enums\UserStatus;
@@ -15,11 +19,13 @@ use App\Models\Challenge;
 use App\Models\Company;
 use App\Models\CompanyRepresentative;
 use App\Models\Event;
+use App\Models\Occurrence;
 use App\Models\Participant;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\SchoolClass;
 use App\Models\Sector;
+use App\Models\Task;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
@@ -31,6 +37,9 @@ use Illuminate\Database\Seeder;
  * e 2 equipes com alguns membros, 3 empresas (com representantes) e 5 desafios em etapas
  * diferentes (um institucional, dois aprovados sem equipe, um distribuído). Só roda em local/testing.
  * Representantes são Persons sem conta de acesso.
+ *
+ * Pendências e ocorrências intersetoriais são criadas pelos Services (com histórico e referência
+ * gerada pelo banco), usando os setores fictícios deste seeder.
  *
  * O código do sistema não depende desses dados (nomes, datas e número de dias vêm do banco).
  */
@@ -67,6 +76,7 @@ class DevelopmentDataSeeder extends Seeder
 
         $sectorA = $event->sectors()->firstOrCreate(['name' => 'Setor Exemplo A'], ['active' => true]);
         $sectorB = $event->sectors()->firstOrCreate(['name' => 'Setor Exemplo B'], ['active' => true]);
+        $sectorC = $event->sectors()->firstOrCreate(['name' => 'Setor Exemplo C'], ['active' => true]);
 
         $this->demoUser('gestor@hacklab.local', 'Gestor de Exemplo', RoleCode::Manager, $sectorA);
         $this->demoUser('editor@hacklab.local', 'Editor de Exemplo', RoleCode::Editor, $sectorB);
@@ -84,6 +94,132 @@ class DevelopmentDataSeeder extends Seeder
 
         $this->participantsAndTeams($event);
         $this->companiesAndChallenges($event);
+
+        if ($admin !== null) {
+            $this->demands($event, $admin, $sectorA, $sectorB, $sectorC);
+        }
+    }
+
+    /**
+     * Pendências e ocorrências intersetoriais (idempotente pelo título).
+     */
+    private function demands(Event $event, User $admin, Sector $sectorA, Sector $sectorB, Sector $sectorC): void
+    {
+        $tasks = app(TaskService::class);
+        $occurrences = app(OccurrenceService::class);
+        $manager = User::query()->where('email', 'gestor@hacklab.local')->first();
+        $editor = User::query()->where('email', 'editor@hacklab.local')->first();
+        $exists = fn (string $model, string $title) => $model::query()->where('event_id', $event->id)->where('title', $title)->exists();
+
+        // Pendência do próprio setor, atribuída ao Gestor do setor A.
+        if (! $exists(Task::class, 'Pendência Exemplo: conferir crachás')) {
+            $task = $tasks->create($event, $manager ?? $admin, [
+                'title' => 'Pendência Exemplo: conferir crachás',
+                'description' => 'Conferir a lista de crachás impressos.',
+                'origin_sector_id' => $sectorA->id,
+                'responsible_sector_id' => $sectorA->id,
+                'assigned_user_id' => $manager?->id,
+                'priority' => DemandPriority::High->value,
+            ]);
+            $tasks->comment($task, $admin, 'Lembrar de separar os crachás de jurados.');
+        }
+
+        // Pendência encaminhada: A → B (A continua envolvido).
+        if (! $exists(Task::class, 'Pendência Exemplo: instalação elétrica')) {
+            $task = $tasks->create($event, $admin, [
+                'title' => 'Pendência Exemplo: instalação elétrica',
+                'description' => 'Pontos de energia para as bancadas.',
+                'origin_sector_id' => $sectorC->id,
+                'responsible_sector_id' => $sectorA->id,
+            ]);
+            $tasks->forward($task, $sectorB->id, 'A instalação depende da equipe do Setor B.', $admin);
+        }
+
+        // Pendência com vários envolvidos.
+        if (! $exists(Task::class, 'Pendência Exemplo: logística do coffee break')) {
+            $tasks->create($event, $admin, [
+                'title' => 'Pendência Exemplo: logística do coffee break',
+                'description' => 'Horários e reposição do coffee break.',
+                'origin_sector_id' => $sectorB->id,
+                'responsible_sector_id' => $sectorB->id,
+                'assigned_user_id' => $editor?->id,
+                'involved_sector_ids' => [$sectorA->id, $sectorC->id],
+                'due_at' => $event->start_date->copy()->setTime(9, 0)->toIso8601String(),
+            ]);
+        }
+
+        // Pendência concluída.
+        if (! $exists(Task::class, 'Pendência Exemplo: lista de presença impressa')) {
+            $task = $tasks->create($event, $admin, [
+                'title' => 'Pendência Exemplo: lista de presença impressa',
+                'description' => 'Imprimir listas de apoio.',
+                'origin_sector_id' => $sectorA->id,
+                'responsible_sector_id' => $sectorA->id,
+            ]);
+            $tasks->complete($task, $admin, 'Listas impressas e entregues.');
+        }
+
+        $day1 = $event->days()->where('day_number', 1)->first();
+        $team = Team::query()->where('event_id', $event->id)->where('name', 'Equipe Exemplo 1')->first();
+
+        // Ocorrência aberta.
+        if (! $exists(Occurrence::class, 'Ocorrência Exemplo: projetor com defeito')) {
+            $occurrences->create($event, $admin, [
+                'title' => 'Ocorrência Exemplo: projetor com defeito',
+                'description' => 'Projetor da sala 2 não liga.',
+                'category' => OccurrenceCategory::Technology->value,
+                'origin_sector_id' => $sectorA->id,
+                'responsible_sector_id' => $sectorA->id,
+                'event_day_id' => $day1?->id,
+                'location' => 'Sala 2',
+            ]);
+        }
+
+        // Ocorrência em atendimento, envolvendo mais de um setor.
+        if (! $exists(Occurrence::class, 'Ocorrência Exemplo: rede instável')) {
+            $occurrence = $occurrences->create($event, $admin, [
+                'title' => 'Ocorrência Exemplo: rede instável',
+                'description' => 'Wi-Fi caindo no salão principal.',
+                'category' => OccurrenceCategory::Infrastructure->value,
+                'priority' => DemandPriority::Urgent->value,
+                'origin_sector_id' => $sectorA->id,
+                'responsible_sector_id' => $sectorB->id,
+                'involved_sector_ids' => [$sectorC->id],
+                'event_day_id' => $day1?->id,
+            ]);
+            $occurrences->update($occurrence, ['status' => 'IN_PROGRESS'], $admin);
+            $occurrences->comment($occurrence, $admin, 'Técnico a caminho.');
+        }
+
+        // Ocorrência resolvida com solução.
+        if (! $exists(Occurrence::class, 'Ocorrência Exemplo: equipe sem mesa')) {
+            $occurrence = $occurrences->create($event, $admin, [
+                'title' => 'Ocorrência Exemplo: equipe sem mesa',
+                'description' => 'Uma equipe chegou e não havia mesa.',
+                'category' => OccurrenceCategory::Team->value,
+                'origin_sector_id' => $sectorB->id,
+                'responsible_sector_id' => $sectorB->id,
+                'team_id' => $team?->id,
+            ]);
+            $occurrences->resolve($occurrence, $admin, 'Mesa extra trazida do depósito.');
+        }
+
+        // Ocorrência que gerou pendência.
+        if (! $exists(Occurrence::class, 'Ocorrência Exemplo: falta de cadeiras')) {
+            $occurrence = $occurrences->create($event, $admin, [
+                'title' => 'Ocorrência Exemplo: falta de cadeiras',
+                'description' => 'Faltam cadeiras na área das equipes.',
+                'category' => OccurrenceCategory::Production->value,
+                'origin_sector_id' => $sectorC->id,
+                'responsible_sector_id' => $sectorC->id,
+            ]);
+            $occurrences->generateTask($occurrence, $admin, [
+                'title' => 'Pendência Exemplo: repor cadeiras',
+                'description' => 'Trazer 20 cadeiras do depósito.',
+                'origin_sector_id' => $sectorC->id,
+                'responsible_sector_id' => $sectorA->id,
+            ]);
+        }
     }
 
     private function participantsAndTeams(Event $event): void

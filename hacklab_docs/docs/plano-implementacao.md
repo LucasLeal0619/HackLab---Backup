@@ -166,15 +166,38 @@ Especificação fechada em 09/10/2026: ver `banco-de-dados.md` (companies, compa
 
 ## Fase 5 — Gestão operacional
 
-- [ ] tasks;
-- [ ] task_sectors;
-- [ ] task_interactions;
-- [ ] occurrences;
-- [ ] occurrence_sectors;
-- [ ] occurrence_interactions;
-- [ ] encaminhamento;
-- [ ] ocorrência → pendência;
-- [ ] regras de visibilidade intersetorial.
+- [x] tasks;
+- [x] task_sectors;
+- [x] task_interactions;
+- [x] occurrences;
+- [x] occurrence_sectors;
+- [x] occurrence_interactions;
+- [x] encaminhamento;
+- [x] ocorrência → pendência;
+- [x] regras de visibilidade intersetorial;
+- [x] responsável individual coerente com o setor (aplicação + banco);
+- [x] ampliação da regra de inativação de setor;
+- [x] permissões/policies, auditoria, seeds e testes.
+
+Concluída em 09/10/2026 (aguardando aprovação para commit): 249 testes passando em `hacklab_test` dentro do Docker, 23 migrations do zero, seed idempotente, `db-check`, Pint, encaminhamento e poderes por perfil validados via HTTP com cookies reais, nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| GET/POST | `/events/{event}/tasks` | `tasks.view` (escopo na query) / `tasks.create` (+ regras de origem/responsável) |
+| GET/PATCH | `/tasks/{task}` | ver: participa; PATCH: estrutura = gestão do responsável, status = operação do responsável |
+| POST | `/tasks/{task}/comments` | `tasks.comment` + participa |
+| POST | `/tasks/{task}/forward` | `tasks.route` + responsável atual |
+| POST | `/tasks/{task}/complete` · `/reopen` | `tasks.operate` + responsável atual |
+| GET/POST | `/events/{event}/occurrences` | idem com `occurrences.*` |
+| GET/PATCH | `/occurrences/{occurrence}` | idem |
+| POST | `/occurrences/{occurrence}/comments` · `/forward` · `/resolve` · `/reopen` | idem |
+| POST | `/occurrences/{occurrence}/tasks` | `tasks.create` + `occurrences.route` + setor relacionado |
+
+Filtros de pendências: `search`, `status`, `priority`, `origin_sector_id`, `responsible_sector_id`, `involved_sector_id`, `assigned_user_id`, `due_before`, `due_after`, `overdue`, `source_occurrence_id`. Ocorrências: `search`, `status`, `priority`, `category`, `origin_sector_id`, `responsible_sector_id`, `involved_sector_id`, `assigned_user_id`, `event_day_id`, `team_id`, `occurred_before`, `occurred_after`. O detalhe (`GET`) devolve o histórico e `meta.abilities` (o que o usuário pode fazer).
+
+Especificação fechada em 09/10/2026: ver `banco-de-dados.md` §4–5 e `regras-de-negocio.md` §5–8.
 
 ## Fase 6 — Jurados e avaliações
 

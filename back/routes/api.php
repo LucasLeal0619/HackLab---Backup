@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\EventDayController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeetingController;
+use App\Http\Controllers\Api\V1\OccurrenceController;
 use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PersonController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\SectorController;
+use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -94,5 +96,26 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::patch('/challenges/{challenge}', [ChallengeController::class, 'update'])->name('challenges.update');
         Route::patch('/challenges/{challenge}/status', [ChallengeController::class, 'updateStatus'])->name('challenges.status');
         Route::patch('/challenges/{challenge}/team', [ChallengeController::class, 'updateTeam'])->name('challenges.team');
+
+        // Pendências: forward/complete/reopen são operações próprias (não passam pelo PATCH genérico).
+        Route::get('/events/{event}/tasks', [TaskController::class, 'index'])->name('events.tasks.index');
+        Route::post('/events/{event}/tasks', [TaskController::class, 'store'])->name('events.tasks.store');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::patch('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::post('/tasks/{task}/comments', [TaskController::class, 'comment'])->name('tasks.comments.store');
+        Route::post('/tasks/{task}/forward', [TaskController::class, 'forward'])->name('tasks.forward');
+        Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+        Route::post('/tasks/{task}/reopen', [TaskController::class, 'reopen'])->name('tasks.reopen');
+
+        // Ocorrências: forward/resolve/reopen/tasks são operações próprias.
+        Route::get('/events/{event}/occurrences', [OccurrenceController::class, 'index'])->name('events.occurrences.index');
+        Route::post('/events/{event}/occurrences', [OccurrenceController::class, 'store'])->name('events.occurrences.store');
+        Route::get('/occurrences/{occurrence}', [OccurrenceController::class, 'show'])->name('occurrences.show');
+        Route::patch('/occurrences/{occurrence}', [OccurrenceController::class, 'update'])->name('occurrences.update');
+        Route::post('/occurrences/{occurrence}/comments', [OccurrenceController::class, 'comment'])->name('occurrences.comments.store');
+        Route::post('/occurrences/{occurrence}/forward', [OccurrenceController::class, 'forward'])->name('occurrences.forward');
+        Route::post('/occurrences/{occurrence}/resolve', [OccurrenceController::class, 'resolve'])->name('occurrences.resolve');
+        Route::post('/occurrences/{occurrence}/reopen', [OccurrenceController::class, 'reopen'])->name('occurrences.reopen');
+        Route::post('/occurrences/{occurrence}/tasks', [OccurrenceController::class, 'generateTask'])->name('occurrences.tasks.store');
     });
 });

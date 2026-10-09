@@ -4,11 +4,15 @@ namespace App\Domain\Users;
 
 use App\Domain\Audit\AuditAction;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Occurrences\Enums\OccurrenceStatus;
 use App\Domain\People\PersonService;
+use App\Domain\Tasks\Enums\TaskStatus;
 use App\Domain\Users\Enums\RoleCode;
 use App\Domain\Users\Enums\UserStatus;
+use App\Models\Occurrence;
 use App\Models\Person;
 use App\Models\Role;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -117,6 +121,10 @@ class UserService
                 $this->ensureAnotherActiveAdministrator($user, 'role');
             }
 
+            if ($newSectorId !== $user->sector_id) {
+                $this->ensureNoOpenAssignments($user, 'role');
+            }
+
             $before = $this->snapshot($user);
             $user->forceFill([
                 'role_id' => Role::forCode($code)->id,
@@ -155,6 +163,8 @@ class UserService
                 return $user->load('person', 'role', 'sector');
             }
 
+            $this->ensureNoOpenAssignments($user, 'sector_id');
+
             $before = $this->snapshot($user);
             $user->forceFill(['sector_id' => $sectorId])->save();
 
@@ -180,6 +190,10 @@ class UserService
 
             if ($status === UserStatus::Inactive && $user->hasRole(RoleCode::Administrator)) {
                 $this->ensureAnotherActiveAdministrator($user, 'status');
+            }
+
+            if ($status === UserStatus::Inactive) {
+                $this->ensureNoOpenAssignments($user, 'status');
             }
 
             $before = $this->snapshot($user);
@@ -237,6 +251,22 @@ class UserService
         }
 
         return $sectorId;
+    }
+
+    /**
+     * Demanda aberta atribuída a um usuário que muda de setor ou é inativado ficaria incoerente
+     * (assigned_user_id de um setor, responsável de outro). Reatribua ou feche antes.
+     */
+    private function ensureNoOpenAssignments(User $user, string $field): void
+    {
+        $open = Task::query()->where('assigned_user_id', $user->id)->where('status', '!=', TaskStatus::Completed->value)->count()
+            + Occurrence::query()->where('assigned_user_id', $user->id)->where('status', '!=', OccurrenceStatus::Resolved->value)->count();
+
+        if ($open > 0) {
+            throw ValidationException::withMessages([
+                $field => "O usuário é responsável individual por {$open} pendência(s)/ocorrência(s) aberta(s). Reatribua ou feche antes.",
+            ]);
+        }
     }
 
     /**

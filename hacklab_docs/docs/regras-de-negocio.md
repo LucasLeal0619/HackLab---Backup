@@ -85,35 +85,56 @@ Somente votação e experiência pública autorizada.
 Pendência = algo que precisa ser feito.
 
 Campos conceituais:
+- referência legível (`PEN-0001`), gerada pelo backend;
 - título;
 - descrição;
-- setor de origem;
-- setor responsável;
-- setores envolvidos;
-- prioridade;
-- status;
+- setor de origem (nunca muda);
+- setor responsável (único; muda só por encaminhamento);
+- setores envolvidos adicionais;
+- prioridade (`LOW`, `MEDIUM`, `HIGH`, `URGENT`);
+- status (`PENDING`, `IN_PROGRESS`, `COMPLETED`);
 - prazo;
-- responsável individual opcional;
+- responsável individual opcional (usuário ativo do setor responsável);
 - histórico.
 
-Deve existir um único setor responsável principal.
+Concluir é operação própria (preenche `resolved_at`). Reabrir leva para `IN_PROGRESS` e limpa `resolved_at`. Não há exclusão.
+
+### 5.1 Quem cria
+
+- Administrador: escolhe origem e responsável entre setores ativos.
+- Gestor: origem = próprio setor; responsável = próprio setor ou outro setor ativo; pode informar envolvidos.
+- Editor: origem e responsável = próprio setor; pode se atribuir como responsável individual.
+- Consultor, Jurado, Votante: não criam.
+
+### 5.2 Quem opera
+
+Princípio: **origem/envolvido acompanha e conversa; o responsável atual controla a execução.**
+
+- Gestor do setor responsável: altera título, descrição, prioridade, prazo, status, responsável individual e envolvidos; encaminha; conclui/reabre.
+- Editor do setor responsável: comenta, altera status, conclui/reabre. Não encaminha, não muda envolvidos, não atribui outra pessoa, não muda prioridade/prazo.
+- Gestor/Editor de setor só de origem ou envolvido: visualiza e comenta.
+- Administrador: tudo. Consultor: visualiza e comenta qualquer demanda.
 
 ## 6. Ocorrência
 
 Ocorrência = algo que aconteceu.
 
 Campos conceituais:
-- título;
-- descrição;
-- setor de origem;
-- setor responsável;
-- setores envolvidos;
+- referência legível (`OCO-0001`);
+- título, descrição e categoria;
+- setor de origem, setor responsável e envolvidos adicionais;
+- responsável individual opcional;
 - prioridade;
-- status;
-- data/hora;
+- status (`OPEN`, `IN_PROGRESS`, `RESOLVED`);
+- dia do evento (opcional), data/hora, local, equipe (opcional);
+- observações e solução;
 - histórico.
 
-Uma ocorrência pode gerar uma pendência vinculada.
+Resolver é operação própria e exige solução. Reabrir volta para `OPEN`, limpa `resolved_at` e mantém a solução; uma nova solução substitui o resumo, e a anterior fica no histórico.
+
+Criação e operação seguem as mesmas regras da pendência (§5.1 e §5.2), com "resolver" no lugar de "concluir".
+
+Uma ocorrência pode gerar uma ou várias pendências vinculadas (Administrador ou Gestor de setor relacionado; para o Gestor, a origem é o próprio setor). A ligação é imutável.
 
 ## 7. Visibilidade intersetorial
 
@@ -122,9 +143,24 @@ Um setor visualiza:
 - itens pelos quais é responsável;
 - itens nos quais aparece como envolvido.
 
-Setores não relacionados não visualizam.
+Setores não relacionados não visualizam (nem aparecem na listagem: a query já aplica a visibilidade).
 
-Administrador visualiza tudo.
+Administrador visualiza tudo. Consultor visualiza tudo, sem poder operacional estrutural. Jurado e Votante não acessam pendências e ocorrências.
+
+### 7.1 Encaminhamento
+
+Operação própria, com motivo obrigatório. Ao encaminhar:
+- o responsável anterior passa a envolvido (exceto se for a origem, que já vê a demanda);
+- o novo responsável sai da lista de envolvidos, se estava nela;
+- a origem nunca muda;
+- o responsável individual é limpo;
+- tudo numa transação, com um único registro de auditoria.
+
+Encaminha: Administrador (qualquer demanda) e Gestor do setor responsável atual. Destino precisa ser setor ativo do mesmo evento.
+
+### 7.2 Setor inativo
+
+Setor responsável por demanda aberta não pode ser inativado (encaminhe antes). Ser origem ou envolvido não bloqueia. Setor inativo não recebe nova demanda, não vira envolvido e não recebe encaminhamento.
 
 ## 8. Histórico e interação
 
@@ -136,13 +172,16 @@ Registrar:
 - encaminhamento;
 - alteração de responsável;
 - prioridade;
+- prazo;
 - status;
 - inclusão/remoção de setor;
-- resolução;
+- conclusão/resolução;
 - reabertura;
 - geração de pendência.
 
-Histórico de colaboração não substitui Auditoria.
+Histórico é somente inserção (sem editar/apagar). Não é chat genérico: é contextual à demanda.
+
+Histórico de colaboração não substitui Auditoria: alteração estrutural gera interação **e** auditoria; comentário gera só interação.
 
 ## 9. Auditoria
 

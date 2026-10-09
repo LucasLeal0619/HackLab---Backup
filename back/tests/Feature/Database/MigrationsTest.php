@@ -22,6 +22,8 @@ class MigrationsTest extends TestCase
             'events', 'event_days', 'sectors', 'meetings',
             'classes', 'participants', 'teams', 'team_members',
             'companies', 'company_representatives', 'challenges',
+            'tasks', 'task_sectors', 'task_interactions',
+            'occurrences', 'occurrence_sectors', 'occurrence_interactions',
         ];
 
         foreach ($tables as $table) {

@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Domain\Users\Enums\RoleCode;
+use App\Models\Role;
 use App\Models\Sector;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -21,6 +22,18 @@ abstract class DatabaseTestCase extends TestCase
 
     /** Origem da SPA configurada em SANCTUM_STATEFUL_DOMAINS: ativa sessão por cookie. */
     protected const SPA_ORIGIN = 'http://localhost:5174';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // O RefreshDatabase só semeia na primeira migração do processo. Se outra classe migrou antes
+        // sem seed (ex.: SeedTest rodando primeiro num filtro), os perfis são criados aqui, dentro da
+        // transação do teste — o resultado não depende da ordem de execução.
+        if (! Role::query()->exists()) {
+            $this->seed(RolePermissionSeeder::class);
+        }
+    }
 
     protected function userWithRole(RoleCode $role, array $attributes = []): User
     {

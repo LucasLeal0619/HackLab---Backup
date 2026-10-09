@@ -33,6 +33,16 @@ enum PermissionCode: string
     case CompaniesManage = 'companies.manage';
     case ChallengesView = 'challenges.view';
     case ChallengesManage = 'challenges.manage';
+    case TasksView = 'tasks.view';
+    case TasksComment = 'tasks.comment';
+    case TasksCreate = 'tasks.create';
+    case TasksOperate = 'tasks.operate';
+    case TasksRoute = 'tasks.route';
+    case OccurrencesView = 'occurrences.view';
+    case OccurrencesComment = 'occurrences.comment';
+    case OccurrencesCreate = 'occurrences.create';
+    case OccurrencesOperate = 'occurrences.operate';
+    case OccurrencesRoute = 'occurrences.route';
 
     public function label(): string
     {
@@ -59,6 +69,16 @@ enum PermissionCode: string
             self::CompaniesManage => 'Cadastrar e editar empresas e representantes',
             self::ChallengesView => 'Consultar desafios',
             self::ChallengesManage => 'Cadastrar e editar desafios e distribuí-los às equipes',
+            self::TasksView => 'Consultar pendências (no escopo do usuário)',
+            self::TasksComment => 'Comentar pendências (no escopo do usuário)',
+            self::TasksCreate => 'Criar pendências',
+            self::TasksOperate => 'Operar pendências do setor responsável (status, concluir, reabrir)',
+            self::TasksRoute => 'Gerir pendências do setor responsável (encaminhar, prioridade, prazo, atribuição, envolvidos)',
+            self::OccurrencesView => 'Consultar ocorrências (no escopo do usuário)',
+            self::OccurrencesComment => 'Comentar ocorrências (no escopo do usuário)',
+            self::OccurrencesCreate => 'Registrar ocorrências',
+            self::OccurrencesOperate => 'Operar ocorrências do setor responsável (status, resolver, reabrir)',
+            self::OccurrencesRoute => 'Gerir ocorrências do setor responsável (encaminhar, atribuição, envolvidos, gerar pendência)',
         };
     }
 
@@ -77,16 +97,22 @@ enum PermissionCode: string
                 self::MeetingsView, self::MeetingsManage,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
                 self::CompaniesView, self::ChallengesView,
+                self::TasksView, self::TasksComment, self::TasksCreate, self::TasksOperate, self::TasksRoute,
+                self::OccurrencesView, self::OccurrencesComment, self::OccurrencesCreate, self::OccurrencesOperate, self::OccurrencesRoute,
             ],
             RoleCode::Editor->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
                 self::CompaniesView, self::ChallengesView,
+                self::TasksView, self::TasksComment, self::TasksCreate, self::TasksOperate,
+                self::OccurrencesView, self::OccurrencesComment, self::OccurrencesCreate, self::OccurrencesOperate,
             ],
             RoleCode::Consultant->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
                 self::CompaniesView, self::ChallengesView,
+                self::TasksView, self::TasksComment,
+                self::OccurrencesView, self::OccurrencesComment,
             ],
             RoleCode::Juror->value => [self::EventsView],
             RoleCode::Voter->value => [self::EventsView],

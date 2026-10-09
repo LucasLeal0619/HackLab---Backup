@@ -4,9 +4,13 @@ namespace App\Domain\Sectors;
 
 use App\Domain\Audit\AuditAction;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\Occurrences\Enums\OccurrenceStatus;
+use App\Domain\Tasks\Enums\TaskStatus;
 use App\Domain\Users\Enums\UserStatus;
 use App\Models\Event;
+use App\Models\Occurrence;
 use App\Models\Sector;
+use App\Models\Task;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -63,7 +67,8 @@ class SectorService
     }
 
     /**
-     * Setor inativo não recebe novos vínculos nem reuniões. Só é inativado sem Gestor/Editor ativo vinculado.
+     * Setor inativo não recebe novos vínculos, reuniões nem demandas. Só é inativado sem Gestor/Editor
+     * ativo vinculado e sem ser responsável por pendência/ocorrência aberta (origem/envolvido não bloqueia).
      */
     public function changeStatus(Sector $sector, bool $active): Sector
     {
@@ -80,6 +85,15 @@ class SectorService
                 if ($linked > 0) {
                     throw ValidationException::withMessages([
                         'active' => "O setor tem {$linked} usuário(s) ativo(s) vinculado(s). Mova-os para outro setor antes de inativar.",
+                    ]);
+                }
+
+                $openDemands = Task::query()->where('responsible_sector_id', $sector->id)->where('status', '!=', TaskStatus::Completed->value)->count()
+                    + Occurrence::query()->where('responsible_sector_id', $sector->id)->where('status', '!=', OccurrenceStatus::Resolved->value)->count();
+
+                if ($openDemands > 0) {
+                    throw ValidationException::withMessages([
+                        'active' => "O setor é responsável por {$openDemands} pendência(s)/ocorrência(s) aberta(s). Encaminhe-as antes de inativar.",
                     ]);
                 }
             }
