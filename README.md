@@ -49,6 +49,20 @@ Bancos:
 
 As tabelas são criadas só pelas migrations do Laravel. Não crie tabelas manualmente.
 
+### Login de desenvolvimento
+
+O seed cria, **só em `local` e `testing`**, um Administrador de desenvolvimento:
+
+- e-mail: `admin@hacklab.local`
+- senha: `hacklab123`
+
+Dá para trocar com `DEV_ADMIN_EMAIL` e `DEV_ADMIN_PASSWORD` no `.env`. Em qualquer outro ambiente o seeder não cria essa conta. Em produção, o primeiro Administrador é criado com:
+
+```bash
+php artisan db:seed --class=RolePermissionSeeder --force
+php artisan hacklab:create-admin   # pede nome, e-mail e senha no terminal
+```
+
 ### Testes
 
 ```bash

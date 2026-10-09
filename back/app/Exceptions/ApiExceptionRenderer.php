@@ -19,10 +19,20 @@ class ApiExceptionRenderer
 {
     public static function render(Throwable $e): JsonResponse
     {
+        // O Laravel embrulha algumas exceções em HttpException antes de chegar aqui; usa a original.
+        $previous = $e->getPrevious();
+        if ($e instanceof HttpExceptionInterface && (
+            $previous instanceof AuthorizationException
+            || $previous instanceof TokenMismatchException
+            || $previous instanceof ModelNotFoundException
+        )) {
+            $e = $previous;
+        }
+
         [$status, $message, $errors, $headers] = match (true) {
             $e instanceof ValidationException => [$e->status, $e->getMessage(), $e->errors(), []],
             $e instanceof AuthenticationException => [401, 'Não autenticado.', [], []],
-            $e instanceof AuthorizationException => [$e->status() ?? 403, 'Acesso negado.', [], []],
+            $e instanceof AuthorizationException => [$e->status() ?? 403, self::authorizationMessage($e), [], []],
             $e instanceof ModelNotFoundException => [404, 'Recurso não encontrado.', [], []],
             $e instanceof TokenMismatchException => [419, 'Sessão expirada ou token CSRF inválido.', [], []],
             $e instanceof HttpExceptionInterface => [
@@ -51,6 +61,16 @@ class ApiExceptionRenderer
         return new JsonResponse($body, $status, $headers);
     }
 
+    /**
+     * Mantém mensagens específicas (ex.: "Conta inativa."); a padrão do framework vira "Acesso negado.".
+     */
+    private static function authorizationMessage(AuthorizationException $e): string
+    {
+        $message = $e->getMessage();
+
+        return $message === '' || $message === 'This action is unauthorized.' ? 'Acesso negado.' : $message;
+    }
+
     private static function httpMessage(HttpExceptionInterface $e): string
     {
         return match ($e->getStatusCode()) {
@@ -59,7 +79,8 @@ class ApiExceptionRenderer
             405 => 'Método não permitido.',
             429 => 'Muitas requisições. Tente novamente em instantes.',
             503 => 'Serviço indisponível.',
-            default => Response::$statusTexts[$e->getStatusCode()] ?? 'Erro.',
+            // Mensagem própria da aplicação (ex.: abort(400, '...')); senão, o texto padrão do status.
+            default => $e->getMessage() !== '' ? $e->getMessage() : (Response::$statusTexts[$e->getStatusCode()] ?? 'Erro.'),
         };
     }
 }

@@ -141,15 +141,20 @@ Observações:
 id
 person_id FK unique
 role_id FK
-sector_id FK nullable
-email unique
-password
-status
+sector_id FK nullable        (entra na Fase 2, junto com a tabela sectors)
+email unique                 (sempre minúsculo; check no banco)
+password                     (hash padrão do Laravel)
+status                       (ACTIVE | INACTIVE; check no banco)
 email_verified_at nullable
 last_login_at nullable
+remember_token nullable
 created_at
 updated_at
 ```
+
+Implementado na Fase 1 sem `sector_id`: a coluna e a FK chegam na migration da Fase 2, para não depender de tabela inexistente.
+
+Usuário não é apagado: é inativado (`status = INACTIVE`), o que encerra as sessões abertas e bloqueia o acesso na próxima requisição. O sistema recusa inativar ou rebaixar o último Administrador ativo.
 
 ### roles
 
@@ -187,10 +192,23 @@ description nullable
 ```text
 role_id
 permission_id
-unique(role_id, permission_id)
+primary key(role_id, permission_id)
 ```
 
 Policies ainda devem aplicar escopo por setor.
+
+Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCode`:
+
+| Permissão | Administrador | Gestor | Editor | Consultor | Jurado | Votante |
+|---|---|---|---|---|---|---|
+| `people.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `people.manage` | ✓ | | | | | |
+| `users.view` | ✓ | | | | | |
+| `users.manage` | ✓ | | | | | |
+| `roles.view` | ✓ | | | | | |
+| `audit.view` | ✓ | | | | | |
+
+Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Gestor e Editor ganham escopo por setor na Fase 2. Novas permissões entram junto com os módulos que as usam.
 
 ### events
 
@@ -724,14 +742,20 @@ module
 entity_type nullable
 entity_id nullable
 description
-before_data json nullable
-after_data json nullable
+before_data jsonb nullable
+after_data jsonb nullable
 ip_address nullable
 user_agent nullable
 created_at
 ```
 
 Não permitir update/delete por endpoints normais.
+
+Implementado na Fase 1:
+- somente inserção, garantido em duas camadas: o model `AuditLog` recusa update/delete e um trigger no PostgreSQL (`audit_logs_no_update_delete`) recusa `UPDATE`/`DELETE`;
+- `actor_user_id`/`actor_person_id` com `restrict`: usuários e pessoas são inativados, não apagados;
+- `App\Domain\Audit\AuditLogger` remove de `before_data`/`after_data`, em qualquer nível, chaves com `password`, `token`, `secret`, `cookie`, `authorization`, `api_key` ou `remember`;
+- ações auditadas na Fase 1: `LOGIN`, `LOGIN_FAILED`, `LOGIN_BLOCKED_INACTIVE`, `LOGOUT`, `USER_CREATED`, `USER_UPDATED`, `USER_ROLE_CHANGED`, `USER_ACTIVATED`, `USER_INACTIVATED`, `PERSON_CREATED`, `PERSON_UPDATED`.
 
 ## 12. Índices importantes
 

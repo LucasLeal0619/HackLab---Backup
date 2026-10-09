@@ -35,16 +35,35 @@ Pendência registrada: compilar a imagem Docker `app` numa rede sem o bloqueio d
 
 ## Fase 1 — Pessoas, autenticação e autorização
 
-- [ ] people;
-- [ ] users;
-- [ ] roles;
-- [ ] permissions;
-- [ ] login;
-- [ ] logout;
-- [ ] me;
-- [ ] policies;
-- [ ] seed dos 6 perfis;
-- [ ] auditoria inicial.
+- [x] people;
+- [x] users (vinculados a people; `sector_id` fica para a Fase 2);
+- [x] roles;
+- [x] permissions / role_permission;
+- [x] login;
+- [x] logout;
+- [x] me;
+- [x] policies;
+- [x] seed dos 6 perfis;
+- [x] auditoria inicial.
+
+Concluída em 09/10/2026: 73 testes passando em `hacklab_test`, migrations do zero, seed idempotente, `db-check`, Pint, login/logout/me validados com cookies reais, nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| POST | `/auth/login` | público (SPA, CSRF, 5 tentativas/min por e-mail+IP) |
+| POST | `/auth/logout` | autenticado |
+| GET | `/auth/me` | autenticado (inclui permissões) |
+| GET | `/roles` | `roles.view` |
+| GET/POST | `/people` | `people.view` / `people.manage` |
+| GET/PATCH | `/people/{id}` | `people.view` ou a própria pessoa / `people.manage` |
+| GET/POST | `/users` | `users.view` / `users.manage` |
+| GET/PATCH | `/users/{id}` | `users.view` ou a própria conta / `users.manage` |
+| PATCH | `/users/{id}/role` | `users.manage` |
+| PATCH | `/users/{id}/status` | `users.manage` |
+
+Todas as rotas autenticadas passam por `EnsureUserIsActive`: conta inativada perde o acesso na requisição seguinte.
 
 Perfis:
 
