@@ -8,9 +8,12 @@ use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
+    /**
+     * Autorização antes da validação: sem permissão, 403 sem detalhes de validação (UserPolicy::update).
+     */
     public function authorize(): bool
     {
-        return true; // Autorização no controller (UserPolicy).
+        return $this->user()->can('update', $this->route('user'));
     }
 
     protected function prepareForValidation(): void

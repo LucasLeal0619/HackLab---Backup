@@ -30,6 +30,7 @@ class UserService
      *     email: string,
      *     password: string,
      *     role: string,
+     *     sector_id?: ?int,
      *     status?: string,
      * }  $data
      */
@@ -45,9 +46,12 @@ class UserService
                     'document' => $data['person']['document'] ?? null,
                 ]);
 
+            $role = RoleCode::from($data['role']);
+
             $user = User::query()->create([
                 'person_id' => $person->id,
-                'role_id' => Role::forCode(RoleCode::from($data['role']))->id,
+                'role_id' => Role::forCode($role)->id,
+                'sector_id' => $this->sectorFor($role, $data['sector_id'] ?? null),
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'status' => $data['status'] ?? UserStatus::Active->value,
@@ -61,7 +65,7 @@ class UserService
                 after: $this->snapshot($user),
             );
 
-            return $user->load('person', 'role');
+            return $user->load('person', 'role', 'sector');
         });
     }
 
@@ -78,7 +82,7 @@ class UserService
             $credentialChanged = $user->isDirty('password');
 
             if (! $user->isDirty()) {
-                return $user->load('person', 'role');
+                return $user->load('person', 'role', 'sector');
             }
 
             $user->save();
@@ -92,25 +96,33 @@ class UserService
                 after: $this->snapshot($user) + ['credential_changed' => $credentialChanged],
             );
 
-            return $user->load('person', 'role');
+            return $user->load('person', 'role', 'sector');
         });
     }
 
-    public function changeRole(User $user, RoleCode $code): User
+    /**
+     * Troca de perfil. Gestor/Editor exigem setor; ao sair de Gestor/Editor o setor é removido.
+     */
+    public function changeRole(User $user, RoleCode $code, ?int $sectorId = null): User
     {
-        return DB::transaction(function () use ($user, $code) {
+        return DB::transaction(function () use ($user, $code, $sectorId) {
             $user->loadMissing('role');
+            $newSectorId = $this->sectorFor($code, $sectorId ?? ($code->requiresSector() ? $user->sector_id : null));
 
-            if ($user->role->code === $code) {
-                return $user->load('person', 'role');
+            if ($user->role->code === $code && $user->sector_id === $newSectorId) {
+                return $user->load('person', 'role', 'sector');
             }
 
-            if ($user->hasRole(RoleCode::Administrator)) {
+            if ($user->hasRole(RoleCode::Administrator) && $code !== RoleCode::Administrator) {
                 $this->ensureAnotherActiveAdministrator($user, 'role');
             }
 
             $before = $this->snapshot($user);
-            $user->role()->associate(Role::forCode($code))->save();
+            $user->forceFill([
+                'role_id' => Role::forCode($code)->id,
+                'sector_id' => $newSectorId,
+            ])->save();
+            $user->unsetRelation('role');
 
             $this->audit->record(
                 AuditAction::USER_ROLE_CHANGED,
@@ -121,7 +133,41 @@ class UserService
                 after: $this->snapshot($user),
             );
 
-            return $user->load('person', 'role');
+            return $user->load('person', 'role', 'sector');
+        });
+    }
+
+    /**
+     * Vincula ou move Gestor/Editor de setor. Outros perfis não têm setor.
+     */
+    public function changeSector(User $user, int $sectorId): User
+    {
+        return DB::transaction(function () use ($user, $sectorId) {
+            $user->loadMissing('role');
+
+            if (! $user->role->code->requiresSector()) {
+                throw ValidationException::withMessages([
+                    'sector_id' => "O perfil {$user->role->name} não tem vínculo setorial.",
+                ]);
+            }
+
+            if ($user->sector_id === $sectorId) {
+                return $user->load('person', 'role', 'sector');
+            }
+
+            $before = $this->snapshot($user);
+            $user->forceFill(['sector_id' => $sectorId])->save();
+
+            $this->audit->record(
+                AuditAction::USER_SECTOR_CHANGED,
+                'users',
+                "Conta {$user->email} movida do setor {$before['sector_id']} para o setor {$sectorId}.",
+                entity: $user,
+                before: $before,
+                after: $this->snapshot($user),
+            );
+
+            return $user->load('person', 'role', 'sector');
         });
     }
 
@@ -129,7 +175,7 @@ class UserService
     {
         return DB::transaction(function () use ($user, $status) {
             if ($user->status === $status) {
-                return $user->load('person', 'role');
+                return $user->load('person', 'role', 'sector');
             }
 
             if ($status === UserStatus::Inactive && $user->hasRole(RoleCode::Administrator)) {
@@ -155,7 +201,7 @@ class UserService
                 after: $this->snapshot($user),
             );
 
-            return $user->load('person', 'role');
+            return $user->load('person', 'role', 'sector');
         });
     }
 
@@ -170,8 +216,27 @@ class UserService
             'person_id' => $user->person_id,
             'email' => $user->email,
             'role' => $user->role?->code?->value,
+            'sector_id' => $user->sector_id,
             'status' => $user->status?->value,
         ];
+    }
+
+    /**
+     * Setor coerente com o perfil: obrigatório para Gestor/Editor, sempre nulo para os demais.
+     */
+    private function sectorFor(RoleCode $role, ?int $sectorId): ?int
+    {
+        if (! $role->requiresSector()) {
+            return null;
+        }
+
+        if ($sectorId === null) {
+            throw ValidationException::withMessages([
+                'sector_id' => "O perfil {$role->label()} exige um setor.",
+            ]);
+        }
+
+        return $sectorId;
     }
 
     /**

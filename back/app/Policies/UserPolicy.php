@@ -36,4 +36,9 @@ class UserPolicy
     {
         return $actor->hasPermission(PermissionCode::UsersManage);
     }
+
+    public function changeSector(User $actor, User $user): bool
+    {
+        return $actor->hasPermission(PermissionCode::UsersManage);
+    }
 }

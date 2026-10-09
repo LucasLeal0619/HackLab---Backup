@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Database;
 
+use App\Models\Event;
+use App\Models\EventDay;
+use App\Models\Meeting;
 use App\Models\Role;
+use App\Models\Sector;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevelopmentAdminSeeder;
@@ -33,7 +37,11 @@ class SeedTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(6, Role::query()->count());
-        $this->assertSame(1, User::query()->count());
+        $this->assertSame(3, User::query()->count()); // admin + gestor + editor de exemplo
+        $this->assertSame(1, Event::query()->count());
+        $this->assertSame(3, EventDay::query()->count());
+        $this->assertSame(2, Sector::query()->count());
+        $this->assertSame(1, Meeting::query()->count());
     }
 
     public function test_development_admin_exists_in_testing_linked_to_a_person(): void

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Domain\Audit\AuditAction;
+use App\Domain\Users\Enums\PermissionCode;
 use App\Domain\Users\Enums\RoleCode;
 use App\Domain\Users\Enums\UserStatus;
 use Tests\DatabaseTestCase;
@@ -24,7 +25,8 @@ class SessionTest extends DatabaseTestCase
             ->assertJsonPath('data.person.full_name', $admin->person->full_name)
             ->assertJsonPath('data.role.code', 'ADMINISTRATOR')
             ->assertJsonPath('data.role.name', 'Administrador')
-            ->assertJsonCount(6, 'data.permissions')
+            ->assertJsonPath('data.sector', null)
+            ->assertJsonCount(count(PermissionCode::cases()), 'data.permissions')
             ->assertJsonMissingPath('data.password')
             ->assertJsonMissingPath('data.remember_token');
     }

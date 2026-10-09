@@ -34,7 +34,7 @@ docker compose exec app php artisan migrate --seed
 
 No PowerShell, troque `cp` por `Copy-Item`.
 
-**Rede que bloqueia o build** (proxy/firewall que barra o `apt` do Debian dentro do Docker): suba só o banco com `docker compose up -d postgres` e rode o Laravel no PHP da máquina (PHP 8.2+ com `pdo_pgsql` e `pgsql`), usando `php artisan …` dentro de `back/`. O `.env` já aponta para `127.0.0.1:5442`.
+**Rede que bloqueia o build** (proxy/firewall que barra o `apt` do Debian dentro do Docker): faça o primeiro `docker compose up -d --build` em outra rede; depois as camadas ficam em cache e só é preciso rebuild se o `back/Dockerfile` mudar. Alternativa: suba só o banco com `docker compose up -d postgres` e rode o Laravel no PHP da máquina (PHP 8.2+ com `pdo_pgsql` e `pgsql`), usando `php artisan …` dentro de `back/`. O `.env` já aponta para `127.0.0.1:5442`.
 
 - API: http://localhost:8000/api/v1/health
 - PostgreSQL (para DBeaver/pgAdmin): `127.0.0.1:5442`, usuário `hacklab`, senha `hacklab`, schema `hacklab`
@@ -55,6 +55,11 @@ O seed cria, **só em `local` e `testing`**, um Administrador de desenvolvimento
 
 - e-mail: `admin@hacklab.local`
 - senha: `hacklab123`
+
+E dados fictícios para desenvolver (`DevelopmentDataSeeder`): um evento de exemplo com 3 dias, dois setores, uma reunião geral e dois usuários de exemplo, também com senha `hacklab123`:
+
+- `gestor@hacklab.local` (Gestor do "Setor Exemplo A")
+- `editor@hacklab.local` (Editor do "Setor Exemplo B")
 
 Dá para trocar com `DEV_ADMIN_EMAIL` e `DEV_ADMIN_PASSWORD` no `.env`. Em qualquer outro ambiente o seeder não cria essa conta. Em produção, o primeiro Administrador é criado com:
 

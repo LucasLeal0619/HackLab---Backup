@@ -8,9 +8,12 @@ use Illuminate\Validation\Rule;
 
 class UpdatePersonRequest extends FormRequest
 {
+    /**
+     * Autorização antes da validação: sem permissão, 403 sem detalhes de validação (PersonPolicy::update).
+     */
     public function authorize(): bool
     {
-        return true; // Autorização no controller (PersonPolicy).
+        return $this->user()->can('update', $this->route('person'));
     }
 
     /**

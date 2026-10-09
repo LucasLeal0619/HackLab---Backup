@@ -16,7 +16,13 @@ class MigrationsTest extends TestCase
         $this->assertSame('pgsql', DB::getDriverName());
         $this->assertSame('hacklab_test', DB::scalar('select current_database()'));
 
-        foreach (['migrations', 'users', 'sessions', 'cache', 'jobs', 'personal_access_tokens'] as $table) {
+        $tables = [
+            'migrations', 'sessions', 'cache', 'jobs', 'personal_access_tokens',
+            'people', 'roles', 'permissions', 'role_permission', 'users', 'audit_logs',
+            'events', 'event_days', 'sectors', 'meetings',
+        ];
+
+        foreach ($tables as $table) {
             $this->assertTrue(Schema::hasTable($table), "Tabela {$table} não foi criada.");
         }
     }

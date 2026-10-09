@@ -21,7 +21,7 @@ class UserManagementTest extends DatabaseTestCase
             'person' => ['full_name' => 'Maria Souza', 'phone' => '11999990000'],
             'email' => 'Maria@HackLab.test',
             'password' => 'senhaForte1',
-            'role' => 'EDITOR',
+            'role' => 'CONSULTANT',
         ], $overrides);
     }
 
@@ -31,7 +31,8 @@ class UserManagementTest extends DatabaseTestCase
             ->postJson('/api/v1/users', $this->validPayload())
             ->assertCreated()
             ->assertJsonPath('data.email', 'maria@hacklab.test')
-            ->assertJsonPath('data.role.code', 'EDITOR')
+            ->assertJsonPath('data.role.code', 'CONSULTANT')
+            ->assertJsonPath('data.sector', null)
             ->assertJsonPath('data.status', 'ACTIVE')
             ->assertJsonPath('data.person.full_name', 'Maria Souza')
             ->assertJsonMissingPath('data.password');

@@ -17,7 +17,7 @@ class AuthController extends Controller
     {
         $user = $this->auth->login($request->validated('email'), $request->validated('password'), $request);
 
-        return AuthenticatedUserResource::make($user->load('person', 'role'));
+        return AuthenticatedUserResource::make($user->load('person', 'role', 'sector'));
     }
 
     public function logout(Request $request): Response
@@ -29,6 +29,6 @@ class AuthController extends Controller
 
     public function me(Request $request): AuthenticatedUserResource
     {
-        return AuthenticatedUserResource::make($request->user()->load('person', 'role'));
+        return AuthenticatedUserResource::make($request->user()->load('person', 'role', 'sector'));
     }
 }

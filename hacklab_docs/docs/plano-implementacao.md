@@ -31,7 +31,7 @@ e migrations executam do zero em `hacklab_dev` (PostgreSQL) e todos os testes pa
 
 Revalidação obrigatória após a troca MySQL → PostgreSQL (09/10/2026): health, CORS, erros JSON, Sanctum, testes, DB guard, migrations padrão e Pint. **Não iniciar a Fase 1 antes disso.** Revalidada em 09/10/2026: 26 testes passando em `hacklab_test`, migrations do zero em `hacklab_dev`, health 200, CORS, cookie CSRF e Pint ok. Fase 0 aprovada e concluída em 09/10/2026.
 
-Pendência registrada: compilar a imagem Docker `app` numa rede sem o bloqueio do Fortinet (o firewall barra o `apt` do Debian). Até lá, a API roda no PHP da máquina contra o PostgreSQL do Docker. Não alterar certificados ou segurança da máquina para contornar.
+~~Pendência: compilar a imagem Docker `app` numa rede sem o bloqueio do Fortinet.~~ **Resolvida em 09/10/2026:** a imagem `app` compilou em outra rede (PHP 8.3 com `pdo_pgsql`, `pgsql`, `intl`, `zip`, `bcmath`, `opcache`, `pcntl`). Validado no Docker: PostgreSQL saudável, API respondendo em `localhost:8000`, `hacklab:db-check` ok, 13 migrations aplicadas, 122 testes passando dentro do container e Pint ok. As camadas ficam em cache: na rede do Senac só é preciso refazer o build se o `back/Dockerfile` mudar.
 
 ## Fase 1 — Pessoas, autenticação e autorização
 
@@ -78,11 +78,31 @@ Votante
 
 ## Fase 2 — Evento e setores
 
-- [ ] events;
-- [ ] event_days;
-- [ ] sectors;
-- [ ] meetings;
-- [ ] escopo Gestor/Editor por setor.
+- [x] events;
+- [x] event_days;
+- [x] sectors;
+- [x] meetings;
+- [x] users.sector_id (Gestor/Editor com setor obrigatório; demais sem setor);
+- [x] escopo Gestor/Editor por setor;
+- [x] permissões/policies da fase, auditoria, seeds e factories.
+
+Concluída em 09/10/2026 (aguardando aprovação para commit): 122 testes passando em `hacklab_test`, 13 migrations do zero, seed idempotente, `db-check`, Pint, escopo do Gestor validado via HTTP com cookies reais, nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| GET/POST | `/events` | `events.view` / `events.manage` + global |
+| GET/PATCH | `/events/{event}` | `events.view` / `events.manage` + global |
+| GET/POST | `/events/{event}/days` | `events.view` / `events.manage` + global |
+| PATCH | `/events/{event}/days/{day}` | `events.manage` + global |
+| GET/POST | `/events/{event}/sectors` | `sectors.view` (no escopo) / `sectors.manage` + global |
+| GET/PATCH | `/sectors/{sector}` | `sectors.view` / `sectors.manage`, ambos no escopo |
+| PATCH | `/sectors/{sector}/status` | `sectors.manage` + global |
+| GET/POST | `/events/{event}/meetings` | `meetings.view` (gerais + escopo) / `meetings.manage` no setor; geral só global |
+| GET/PATCH | `/meetings/{meeting}` | idem; mover de setor exige alcance no destino |
+| PATCH | `/users/{user}/role` | `users.manage`; `sector_id` obrigatório ao virar Gestor/Editor |
+| PATCH | `/users/{user}/sector` | `users.manage`; só Gestor/Editor |
 
 ## Fase 3 — Participantes e equipes
 

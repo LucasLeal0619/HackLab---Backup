@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Domain\Users\Enums\RoleCode;
+use App\Models\Sector;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +25,14 @@ abstract class DatabaseTestCase extends TestCase
     protected function userWithRole(RoleCode $role, array $attributes = []): User
     {
         return User::factory()->role($role)->create($attributes);
+    }
+
+    /**
+     * Gestor ou Editor vinculado ao setor informado.
+     */
+    protected function sectorUser(RoleCode $role, Sector $sector): User
+    {
+        return User::factory()->role($role)->inSector($sector)->create();
     }
 
     protected function admin(array $attributes = []): User

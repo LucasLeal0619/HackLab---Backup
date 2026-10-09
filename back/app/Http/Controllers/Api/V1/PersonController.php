@@ -33,8 +33,6 @@ class PersonController extends Controller
 
     public function store(StorePersonRequest $request): PersonResource
     {
-        Gate::authorize('create', Person::class);
-
         return PersonResource::make($this->people->create($request->validated())->load('user'));
     }
 
@@ -47,8 +45,6 @@ class PersonController extends Controller
 
     public function update(UpdatePersonRequest $request, Person $person): PersonResource
     {
-        Gate::authorize('update', $person);
-
         return PersonResource::make($this->people->update($person, $request->validated())->load('user'));
     }
 }

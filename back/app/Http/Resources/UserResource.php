@@ -24,6 +24,11 @@ class UserResource extends JsonResource
                 'code' => $this->role->code->value,
                 'name' => $this->role->name,
             ]),
+            'sector' => $this->whenLoaded('sector', fn () => $this->sector === null ? null : [
+                'id' => $this->sector->id,
+                'event_id' => $this->sector->event_id,
+                'name' => $this->sector->name,
+            ]),
             'person' => PersonResource::make($this->whenLoaded('person')),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'last_login_at' => $this->last_login_at?->toIso8601String(),

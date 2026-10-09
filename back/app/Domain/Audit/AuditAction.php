@@ -3,7 +3,7 @@
 namespace App\Domain\Audit;
 
 /**
- * Ações auditadas. Módulos: auth, users, people.
+ * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings.
  */
 final class AuditAction
 {
@@ -28,4 +28,26 @@ final class AuditAction
     public const PERSON_CREATED = 'PERSON_CREATED';
 
     public const PERSON_UPDATED = 'PERSON_UPDATED';
+
+    public const USER_SECTOR_CHANGED = 'USER_SECTOR_CHANGED';
+
+    public const EVENT_CREATED = 'EVENT_CREATED';
+
+    public const EVENT_UPDATED = 'EVENT_UPDATED';
+
+    public const EVENT_DAY_CREATED = 'EVENT_DAY_CREATED';
+
+    public const EVENT_DAY_UPDATED = 'EVENT_DAY_UPDATED';
+
+    public const SECTOR_CREATED = 'SECTOR_CREATED';
+
+    public const SECTOR_UPDATED = 'SECTOR_UPDATED';
+
+    public const SECTOR_ACTIVATED = 'SECTOR_ACTIVATED';
+
+    public const SECTOR_INACTIVATED = 'SECTOR_INACTIVATED';
+
+    public const MEETING_CREATED = 'MEETING_CREATED';
+
+    public const MEETING_UPDATED = 'MEETING_UPDATED';
 }

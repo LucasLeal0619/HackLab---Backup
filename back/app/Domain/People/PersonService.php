@@ -4,6 +4,7 @@ namespace App\Domain\People;
 
 use App\Domain\Audit\AuditAction;
 use App\Domain\Audit\AuditLogger;
+use App\Domain\People\Enums\PersonStatus;
 use App\Models\Person;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +20,7 @@ class PersonService
     public function create(array $data): Person
     {
         return DB::transaction(function () use ($data) {
-            $person = Person::query()->create($data);
+            $person = Person::query()->create($data + ['status' => PersonStatus::Active]);
 
             $this->audit->record(
                 AuditAction::PERSON_CREATED,

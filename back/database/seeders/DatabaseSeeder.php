@@ -10,7 +10,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolePermissionSeeder::class);
 
-        // Credencial previsível só em local/testing; o próprio seeder recusa outros ambientes.
+        // Credenciais previsíveis e dados fictícios só em local/testing; os próprios seeders recusam outros ambientes.
         $this->call(DevelopmentAdminSeeder::class);
+        $this->call(DevelopmentDataSeeder::class);
     }
 }

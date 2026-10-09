@@ -271,6 +271,21 @@ Editor de Marketing
 
 Administrador vê tudo.
 
+### 6.2 Escopo setorial (implementado na Fase 2)
+
+```text
+Policy = permissão do perfil (PermissionCode) + escopo do usuário
+```
+
+- O escopo vem do vínculo, não do nome do perfil: `User::canReachSector()` / `User::reachesAllSectors()`.
+- Gestor e Editor têm setor obrigatório (trigger no banco) e alcançam só o próprio setor.
+- Administrador e Consultor não têm setor: alcance global, cada um até onde suas permissões vão (Consultor só consulta).
+- Ações estruturais (criar/ativar/inativar setor, gerenciar evento, gerenciar reunião geral) exigem alcance global.
+- Listagens aplicam o mesmo escopo na query (`Sector::visibleTo`, `Meeting::visibleTo`).
+- Controllers não testam nome de perfil. Endpoints de escrita autorizam no `authorize()` do Form Request, antes da validação (sem permissão = 403, sem detalhes de validação).
+
+Pendências e ocorrências (Fase 5) reutilizam esse escopo, somando setor de origem, responsável e envolvidos.
+
 ## 7. Integração externa
 
 Criar contrato abstrato:

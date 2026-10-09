@@ -4,6 +4,7 @@ namespace App\Http\Requests\Users;
 
 use App\Domain\Users\Enums\RoleCode;
 use App\Domain\Users\Enums\UserStatus;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -13,9 +14,12 @@ use Illuminate\Validation\Rules\Password;
  */
 class StoreUserRequest extends FormRequest
 {
+    /**
+     * Autorização antes da validação: sem permissão, 403 sem detalhes de validação (UserPolicy::create).
+     */
     public function authorize(): bool
     {
-        return true; // Autorização no controller (UserPolicy).
+        return $this->user()->can('create', User::class);
     }
 
     protected function prepareForValidation(): void
@@ -43,6 +47,12 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', Password::defaults()],
             'role' => ['required', Rule::enum(RoleCode::class)],
+            'sector_id' => [
+                'nullable', 'integer',
+                Rule::requiredIf(fn () => in_array($this->input('role'), RoleCode::sectorRoleValues(), true)),
+                Rule::prohibitedIf(fn () => ! in_array($this->input('role'), RoleCode::sectorRoleValues(), true)),
+                Rule::exists('sectors', 'id')->where('active', true),
+            ],
             'status' => ['sometimes', Rule::enum(UserStatus::class)],
         ];
     }
@@ -55,6 +65,9 @@ class StoreUserRequest extends FormRequest
         return [
             'person_id.unique' => 'Esta pessoa já possui uma conta.',
             'email.unique' => 'Já existe uma conta com este e-mail.',
+            'sector_id.required' => 'Gestor e Editor precisam de um setor.',
+            'sector_id.prohibited' => 'Só Gestor e Editor têm vínculo setorial.',
+            'sector_id.exists' => 'Setor inexistente ou inativo.',
         ];
     }
 }

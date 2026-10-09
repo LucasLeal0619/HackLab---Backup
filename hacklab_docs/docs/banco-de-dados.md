@@ -207,8 +207,16 @@ Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCo
 | `users.manage` | ✓ | | | | | |
 | `roles.view` | ✓ | | | | | |
 | `audit.view` | ✓ | | | | | |
+| `events.view` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `events.manage` | ✓ | | | | | |
+| `sectors.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `sectors.manage` | ✓ | ✓ | | | | |
+| `meetings.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `meetings.manage` | ✓ | ✓ | | | | |
 
-Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Gestor e Editor ganham escopo por setor na Fase 2. Novas permissões entram junto com os módulos que as usam.
+Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Novas permissões entram junto com os módulos que as usam.
+
+**Escopo (Fase 2):** a Policy combina permissão + escopo. Quem tem setor (Gestor, Editor) só alcança o próprio setor; quem não tem setor (Administrador, Consultor) tem alcance global, limitado pelas permissões. Criar setor, ativar/inativar setor e gerenciar evento e reunião geral exigem alcance global.
 
 ### events
 
@@ -226,6 +234,8 @@ created_at
 updated_at
 ```
 
+Implementado na Fase 2 sem `external_provider`/`external_event_id`: o vínculo com a plataforma externa fica em `event_integrations` (Fase 9). Status `PLANNED | ACTIVE | FINISHED | CANCELLED` (check) e `end_date >= start_date` (check). Nome, datas e quantidade de dias vêm do cadastro; o código não assume 3 dias.
+
 ### event_days
 
 ```text
@@ -239,6 +249,8 @@ end_time nullable
 unique(event_id, day_number)
 unique(event_id, date)
 ```
+
+Checks: `day_number >= 1` e `end_time > start_time` quando ambos existem. O backend recusa dia fora do período do evento e alteração de datas do evento que deixaria dias de fora.
 
 ### classes
 
@@ -357,6 +369,16 @@ created_at
 updated_at
 ```
 
+Nome único por evento sem diferença de caixa (`unique(event_id, lower(name))`) e `unique(id, event_id)` como alvo de FKs compostas. Setor inativo não recebe novos vínculos nem reuniões; só é inativado sem Gestor/Editor ativo vinculado.
+
+### users.sector_id (Fase 2)
+
+```text
+users.sector_id FK nullable → sectors
+```
+
+Regra no banco (trigger `users_sector_matches_role`): Gestor (`MANAGER`) e Editor (`EDITOR`) **exigem** setor; os demais perfis **não têm** setor. Ao trocar de Gestor/Editor para outro perfil o setor é removido (auditado). Usuários não pertencem a um evento: o evento vem do setor.
+
 ### meetings
 
 ```text
@@ -372,6 +394,8 @@ created_by_user_id FK
 created_at
 updated_at
 ```
+
+Reunião geral: `sector_id` nulo. FK composta `(sector_id, event_id) → sectors(id, event_id)`: o setor é sempre do mesmo evento da reunião. Status `SCHEDULED | DONE | CANCELLED` (check).
 
 ## 4. Pendências
 

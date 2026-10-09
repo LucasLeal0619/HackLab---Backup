@@ -16,6 +16,7 @@ class PersonTest extends DatabaseTestCase
             ->assertCreated()
             ->assertJsonPath('data.full_name', 'João Lima')
             ->assertJsonPath('data.email', 'joao@hacklab.test')
+            ->assertJsonPath('data.status', 'ACTIVE')
             ->assertJsonPath('data.has_account', false);
 
         $this->assertDatabaseHas('audit_logs', ['action' => AuditAction::PERSON_CREATED]);

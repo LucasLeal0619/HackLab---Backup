@@ -2,13 +2,17 @@
 
 namespace App\Http\Requests\People;
 
+use App\Models\Person;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePersonRequest extends FormRequest
 {
+    /**
+     * Autorização antes da validação: sem permissão, 403 sem detalhes de validação (PersonPolicy::create).
+     */
     public function authorize(): bool
     {
-        return true; // Autorização no controller (PersonPolicy).
+        return $this->user()->can('create', Person::class);
     }
 
     /**

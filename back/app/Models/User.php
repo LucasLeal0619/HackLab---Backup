@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'person_id',
         'role_id',
+        'sector_id',
         'email',
         'password',
         'status',
@@ -42,6 +43,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
+            'sector_id' => 'integer',
         ];
     }
 
@@ -53,6 +55,25 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    public function sector(): BelongsTo
+    {
+        return $this->belongsTo(Sector::class);
+    }
+
+    /**
+     * Escopo setorial: quem tem setor (Gestor, Editor) só alcança o próprio setor;
+     * quem não tem setor tem alcance global. O que pode fazer nesse alcance vem das permissões.
+     */
+    public function canReachSector(?int $sectorId): bool
+    {
+        return $this->sector_id === null || $this->sector_id === $sectorId;
+    }
+
+    public function reachesAllSectors(): bool
+    {
+        return $this->sector_id === null;
     }
 
     public function isActive(): bool

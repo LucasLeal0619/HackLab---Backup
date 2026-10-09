@@ -8,9 +8,12 @@ use Illuminate\Validation\Rule;
 
 class ChangeUserStatusRequest extends FormRequest
 {
+    /**
+     * Autorização antes da validação: sem permissão, 403 sem detalhes de validação (UserPolicy::changeStatus).
+     */
     public function authorize(): bool
     {
-        return true; // Autorização no controller (UserPolicy).
+        return $this->user()->can('changeStatus', $this->route('user'));
     }
 
     /**

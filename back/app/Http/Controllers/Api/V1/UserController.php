@@ -7,6 +7,7 @@ use App\Domain\Users\Enums\UserStatus;
 use App\Domain\Users\UserService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Users\ChangeUserRoleRequest;
+use App\Http\Requests\Users\ChangeUserSectorRequest;
 use App\Http\Requests\Users\ChangeUserStatusRequest;
 use App\Http\Requests\Users\StoreUserRequest;
 use App\Http\Requests\Users\UpdateUserRequest;
@@ -25,7 +26,7 @@ class UserController extends Controller
         Gate::authorize('viewAny', User::class);
 
         $users = User::query()
-            ->with('person', 'role')
+            ->with('person', 'role', 'sector')
             ->when($request->query('search'), function ($query, string $search) {
                 $query->where(fn ($q) => $q
                     ->where('email', 'ilike', "%{$search}%")
@@ -33,6 +34,7 @@ class UserController extends Controller
             })
             ->when($request->query('role'), fn ($query, string $role) => $query->whereHas('role', fn ($r) => $r->where('code', $role)))
             ->when($request->query('status'), fn ($query, string $status) => $query->where('status', $status))
+            ->when($request->query('sector_id'), fn ($query, $sectorId) => $query->where('sector_id', $sectorId))
             ->orderBy('email')
             ->paginate(min((int) $request->query('per_page', 20), 100));
 
@@ -41,8 +43,6 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): UserResource
     {
-        Gate::authorize('create', User::class);
-
         return UserResource::make($this->users->create($request->validated()));
     }
 
@@ -50,27 +50,30 @@ class UserController extends Controller
     {
         Gate::authorize('view', $user);
 
-        return UserResource::make($user->load('person', 'role'));
+        return UserResource::make($user->load('person', 'role', 'sector'));
     }
 
     public function update(UpdateUserRequest $request, User $user): UserResource
     {
-        Gate::authorize('update', $user);
-
         return UserResource::make($this->users->update($user, $request->validated()));
     }
 
     public function updateRole(ChangeUserRoleRequest $request, User $user): UserResource
     {
-        Gate::authorize('changeRole', $user);
+        return UserResource::make($this->users->changeRole(
+            $user,
+            RoleCode::from($request->validated('role')),
+            $request->validated('sector_id'),
+        ));
+    }
 
-        return UserResource::make($this->users->changeRole($user, RoleCode::from($request->validated('role'))));
+    public function updateSector(ChangeUserSectorRequest $request, User $user): UserResource
+    {
+        return UserResource::make($this->users->changeSector($user, (int) $request->validated('sector_id')));
     }
 
     public function updateStatus(ChangeUserStatusRequest $request, User $user): UserResource
     {
-        Gate::authorize('changeStatus', $user);
-
         return UserResource::make($this->users->changeStatus($user, UserStatus::from($request->validated('status'))));
     }
 }

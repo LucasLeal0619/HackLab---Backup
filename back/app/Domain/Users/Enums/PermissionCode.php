@@ -3,10 +3,11 @@
 namespace App\Domain\Users\Enums;
 
 /**
- * Permissões iniciais (Fase 1). Novas permissões entram junto com os módulos que as usam.
+ * Permissões por perfil. Novas permissões entram junto com os módulos que as usam.
  *
- * As Policies combinam a permissão com escopo (setor, vínculo, estado do recurso)
- * quando esses conceitos existirem.
+ * A Policy combina a permissão com o escopo do usuário (User::canReachSector):
+ * quem tem setor (Gestor, Editor) fica limitado a ele; quem não tem setor tem
+ * alcance global dentro do que as permissões permitem.
  */
 enum PermissionCode: string
 {
@@ -16,6 +17,12 @@ enum PermissionCode: string
     case UsersManage = 'users.manage';
     case RolesView = 'roles.view';
     case AuditView = 'audit.view';
+    case EventsView = 'events.view';
+    case EventsManage = 'events.manage';
+    case SectorsView = 'sectors.view';
+    case SectorsManage = 'sectors.manage';
+    case MeetingsView = 'meetings.view';
+    case MeetingsManage = 'meetings.manage';
 
     public function label(): string
     {
@@ -26,11 +33,17 @@ enum PermissionCode: string
             self::UsersManage => 'Cadastrar, editar, ativar/inativar usuários e alterar perfil',
             self::RolesView => 'Consultar perfis',
             self::AuditView => 'Consultar auditoria',
+            self::EventsView => 'Consultar eventos e dias',
+            self::EventsManage => 'Cadastrar e editar eventos e dias',
+            self::SectorsView => 'Consultar setores (no escopo do usuário)',
+            self::SectorsManage => 'Gerenciar setores (no escopo do usuário)',
+            self::MeetingsView => 'Consultar reuniões (no escopo do usuário)',
+            self::MeetingsManage => 'Gerenciar reuniões (no escopo do usuário)',
         };
     }
 
     /**
-     * Matriz inicial perfil → permissões. Gestor/Editor ganham escopo setorial na Fase 2.
+     * Matriz perfil → permissões.
      *
      * @return array<string, list<self>>
      */
@@ -38,11 +51,19 @@ enum PermissionCode: string
     {
         return [
             RoleCode::Administrator->value => self::cases(),
-            RoleCode::Manager->value => [self::PeopleView],
-            RoleCode::Editor->value => [self::PeopleView],
-            RoleCode::Consultant->value => [self::PeopleView],
-            RoleCode::Juror->value => [],
-            RoleCode::Voter->value => [],
+            RoleCode::Manager->value => [
+                self::PeopleView, self::EventsView,
+                self::SectorsView, self::SectorsManage,
+                self::MeetingsView, self::MeetingsManage,
+            ],
+            RoleCode::Editor->value => [
+                self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
+            ],
+            RoleCode::Consultant->value => [
+                self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
+            ],
+            RoleCode::Juror->value => [self::EventsView],
+            RoleCode::Voter->value => [self::EventsView],
         ];
     }
 }
