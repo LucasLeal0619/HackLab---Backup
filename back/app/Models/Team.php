@@ -28,12 +28,21 @@ class Team extends Model
     {
         return [
             'status' => TeamStatus::class,
+            'challenge_id' => 'integer',
         ];
     }
 
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * Desafio recebido pela equipe. Alterado só pelo ChallengeService (PATCH /challenges/{id}/team).
+     */
+    public function challenge(): BelongsTo
+    {
+        return $this->belongsTo(Challenge::class);
     }
 
     public function memberships(): HasMany

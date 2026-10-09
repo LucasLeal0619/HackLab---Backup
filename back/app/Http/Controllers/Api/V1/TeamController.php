@@ -28,8 +28,12 @@ class TeamController extends Controller
 
         $teams = Team::query()
             ->where('event_id', $event->id)
+            ->with('challenge')
             ->withCount('activeMemberships')
             ->when($request->query('status'), fn ($q, string $status) => $q->where('status', $status))
+            ->when($request->has('has_challenge'), fn ($q) => $request->boolean('has_challenge')
+                ? $q->whereNotNull('challenge_id')
+                : $q->whereNull('challenge_id'))
             ->orderBy('name')
             ->paginate(min((int) $request->query('per_page', 50), 100));
 
@@ -48,7 +52,7 @@ class TeamController extends Controller
     {
         Gate::authorize('view', $team);
 
-        return TeamResource::make($team->load(self::MEMBER_RELATIONS)->loadCount('activeMemberships'));
+        return TeamResource::make($team->load([...self::MEMBER_RELATIONS, 'challenge'])->loadCount('activeMemberships'));
     }
 
     public function update(TeamRequest $request, Team $team): TeamResource

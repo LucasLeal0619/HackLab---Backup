@@ -29,6 +29,10 @@ enum PermissionCode: string
     case ParticipantsManage = 'participants.manage';
     case TeamsView = 'teams.view';
     case TeamsManage = 'teams.manage';
+    case CompaniesView = 'companies.view';
+    case CompaniesManage = 'companies.manage';
+    case ChallengesView = 'challenges.view';
+    case ChallengesManage = 'challenges.manage';
 
     public function label(): string
     {
@@ -51,6 +55,10 @@ enum PermissionCode: string
             self::ParticipantsManage => 'Cadastrar e editar participantes',
             self::TeamsView => 'Consultar equipes e composição',
             self::TeamsManage => 'Cadastrar equipes e gerenciar membros',
+            self::CompaniesView => 'Consultar empresas e representantes',
+            self::CompaniesManage => 'Cadastrar e editar empresas e representantes',
+            self::ChallengesView => 'Consultar desafios',
+            self::ChallengesManage => 'Cadastrar e editar desafios e distribuí-los às equipes',
         };
     }
 
@@ -68,14 +76,17 @@ enum PermissionCode: string
                 self::SectorsView, self::SectorsManage,
                 self::MeetingsView, self::MeetingsManage,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
+                self::CompaniesView, self::ChallengesView,
             ],
             RoleCode::Editor->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
+                self::CompaniesView, self::ChallengesView,
             ],
             RoleCode::Consultant->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
                 self::ClassesView, self::ParticipantsView, self::TeamsView,
+                self::CompaniesView, self::ChallengesView,
             ],
             RoleCode::Juror->value => [self::EventsView],
             RoleCode::Voter->value => [self::EventsView],

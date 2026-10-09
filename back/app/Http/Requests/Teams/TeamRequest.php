@@ -41,6 +41,8 @@ class TeamRequest extends FormRequest
             'name' => [$this->isMethod('post') ? 'required' : 'sometimes', 'string', 'max:120', $this->uniqueInEvent('name', 'Já existe uma equipe com este nome neste evento.')],
             'code' => ['sometimes', 'nullable', 'string', 'max:32', $this->uniqueInEvent('code', 'Já existe uma equipe com este código neste evento.')],
             'status' => $this->isMethod('post') ? ['prohibited'] : ['sometimes', Rule::enum(TeamStatus::class)],
+            // O desafio da equipe só muda por PATCH /challenges/{challenge}/team.
+            'challenge_id' => ['prohibited'],
         ];
     }
 

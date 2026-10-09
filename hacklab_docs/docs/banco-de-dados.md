@@ -219,12 +219,16 @@ Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCo
 | `participants.manage` | ✓ | | | | | |
 | `teams.view` | ✓ | ✓ | ✓ | ✓ | | |
 | `teams.manage` | ✓ | | | | | |
+| `companies.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `companies.manage` | ✓ | | | | | |
+| `challenges.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `challenges.manage` | ✓ | | | | | |
 
 Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Novas permissões entram junto com os módulos que as usam.
 
 **Escopo (Fase 2):** a Policy combina permissão + escopo. Quem tem setor (Gestor, Editor) só alcança o próprio setor; quem não tem setor (Administrador, Consultor) tem alcance global, limitado pelas permissões. Criar setor, ativar/inativar setor e gerenciar evento e reunião geral exigem alcance global.
 
-Turmas, participantes e equipes (Fase 3) são globais ao evento: só permissão, sem escopo setorial e sem `sector_id`.
+Turmas, participantes e equipes (Fase 3) e empresas e desafios (Fase 4) são globais ao evento: só permissão, sem escopo setorial e sem `sector_id`.
 
 ### events
 
@@ -346,20 +350,34 @@ Implementado na Fase 3, com `event_id` na tabela para as garantias no banco:
 
 ### companies
 
+Empresa interna do HackLab, de um único evento.
+
 ```text
 id
 event_id FK
 name
+legal_name nullable
+document nullable
+segment nullable
+type                 PARTICIPANT | PARTNER | SPONSOR | SUPPORT | OTHER
 description nullable
 email nullable
 phone nullable
 website nullable
-status
+status               DRAFT | CONFIRMED | INACTIVE
 created_at
 updated_at
 ```
 
+- Nome único por evento sem diferença de caixa; `unique(id, event_id)` como alvo de FK composta.
+- `document` normalizado (só letras e dígitos, maiúsculas, já compatível com o CNPJ alfanumérico) e único por evento quando informado.
+- "Aguardando desafio" e "Com desafio" **não** são status: são derivados dos desafios.
+- Sem DELETE físico. `INACTIVE` não recebe novos desafios nem representantes ativos; desafios e representantes existentes permanecem.
+- Nunca criada automaticamente a partir de inscrição externa (Even3).
+
 ### company_representatives
+
+Representante = Person vinculada à empresa. Nome/e-mail ficam em `people`.
 
 ```text
 id
@@ -367,21 +385,60 @@ company_id FK
 person_id FK
 title nullable
 notes nullable
+is_primary
+active
+created_at
+updated_at
 unique(company_id, person_id)
 ```
 
+- No máximo um representante principal **ativo** por empresa (índice único parcial).
+- Pode ser uma Person existente ou criada na mesma transação. Não cria User.
+- Sem DELETE físico: `active = false`. Desativar também remove a marca de principal.
+- Marcar um segundo principal ativo é recusado (422); a troca é explícita.
+- Empresa em `DRAFT` pode não ter representante.
+
 ### challenges
+
+Desafio do evento, com ou sem empresa (desafio institucional/Senac não precisa de empresa fictícia).
 
 ```text
 id
 event_id FK
 company_id FK nullable
 title
-description
-status
+problem
+objective nullable
+requirements nullable
+restrictions nullable
+expected_outcome nullable
+notes nullable
+status               DRAFT | RECEIVED | UNDER_REVIEW | APPROVED | DISTRIBUTED | IN_DEVELOPMENT | FINISHED
 created_at
 updated_at
 ```
+
+- FK composta `(company_id, event_id) → companies(id, event_id)`; `unique(id, event_id)` como alvo da FK de `teams`.
+- O banco garante só valores válidos de status; o `ChallengeService` garante a semântica:
+  - `DISTRIBUTED` e `IN_DEVELOPMENT` exigem equipe;
+  - equipe vinculada só com `DISTRIBUTED`, `IN_DEVELOPMENT` ou `FINISHED`;
+  - `FINISHED` mantém o vínculo da equipe (histórico).
+- Empresa inativa não recebe desafio novo; desafio existente não é apagado nem desvinculado quando a empresa é inativada.
+- Sem DELETE físico e sem status "excluído".
+
+### teams.challenge_id (Fase 4)
+
+Fonte **única** da relação desafio ↔ equipe (não existe `challenges.team_id`).
+
+```text
+teams.challenge_id FK nullable → challenges
+```
+
+- 1 equipe → no máximo 1 desafio; 1 desafio → no máximo 1 equipe (`unique(challenge_id)`; nulos não conflitam).
+- FK composta `(challenge_id, event_id) → challenges(id, event_id)`: equipe e desafio do mesmo evento.
+- Equipe inativa não recebe desafio novo.
+- Distribuir, mover e retirar são operações próprias (`PATCH /challenges/{challenge}/team`), transacionais e com um único log.
+- Se no futuro várias equipes puderem disputar o mesmo desafio, basta remover a unicidade de `teams.challenge_id`.
 
 ### sectors
 

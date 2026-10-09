@@ -3,7 +3,8 @@
 namespace App\Domain\Audit;
 
 /**
- * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings, classes, participants, teams.
+ * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings, classes, participants, teams,
+ * companies, challenges.
  */
 final class AuditAction
 {
@@ -75,4 +76,29 @@ final class AuditAction
 
     /** Movimentação entre equipes: um único log com before/after. */
     public const PARTICIPANT_TEAM_CHANGED = 'PARTICIPANT_TEAM_CHANGED';
+
+    public const COMPANY_CREATED = 'COMPANY_CREATED';
+
+    public const COMPANY_UPDATED = 'COMPANY_UPDATED';
+
+    public const COMPANY_STATUS_CHANGED = 'COMPANY_STATUS_CHANGED';
+
+    public const COMPANY_REPRESENTATIVE_ADDED = 'COMPANY_REPRESENTATIVE_ADDED';
+
+    public const COMPANY_REPRESENTATIVE_UPDATED = 'COMPANY_REPRESENTATIVE_UPDATED';
+
+    public const COMPANY_REPRESENTATIVE_STATUS_CHANGED = 'COMPANY_REPRESENTATIVE_STATUS_CHANGED';
+
+    public const CHALLENGE_CREATED = 'CHALLENGE_CREATED';
+
+    public const CHALLENGE_UPDATED = 'CHALLENGE_UPDATED';
+
+    public const CHALLENGE_STATUS_CHANGED = 'CHALLENGE_STATUS_CHANGED';
+
+    public const CHALLENGE_TEAM_ASSIGNED = 'CHALLENGE_TEAM_ASSIGNED';
+
+    /** Desafio movido de uma equipe para outra: um único log com before/after. */
+    public const CHALLENGE_TEAM_CHANGED = 'CHALLENGE_TEAM_CHANGED';
+
+    public const CHALLENGE_TEAM_UNASSIGNED = 'CHALLENGE_TEAM_UNASSIGNED';
 }

@@ -189,18 +189,36 @@ Nunca misturar nota técnica de jurado com voto público antes da regra final de
 
 ## 12. Empresas
 
-Empresa é entidade interna.
+Empresa é entidade interna e pertence a um evento.
 
 Pode possuir:
-- nome;
+- nome, razão social, documento, segmento e tipo (`PARTICIPANT`, `PARTNER`, `SPONSOR`, `SUPPORT`, `OTHER`);
 - descrição;
 - contatos;
-- representantes;
+- representantes (Persons);
 - desafios.
+
+Status: `DRAFT`, `CONFIRMED`, `INACTIVE`. "Aguardando desafio" e "Com desafio" são situações derivadas dos desafios, não status.
+
+Empresa não é apagada: é inativada. Inativa não recebe novos desafios nem representantes ativos; o histórico permanece.
 
 Pessoa inscrita externamente como `Empresa / Convidado` não cria automaticamente uma Empresa.
 
 Ela pode ser posteriormente vinculada como representante.
+
+Representante de empresa **não** vira Jurado automaticamente, e a empresa **não** define quais equipes um Jurado avalia.
+
+## 12.1 Desafios
+
+- Desafio pertence ao evento; empresa é opcional (desafio institucional).
+- Fluxo: Rascunho (`DRAFT`) → Recebido (`RECEIVED`) → Em análise (`UNDER_REVIEW`) → Aprovado (`APPROVED`) → Distribuído (`DISTRIBUTED`) → Em desenvolvimento (`IN_DEVELOPMENT`) → Finalizado (`FINISHED`).
+- Nesta versão: uma equipe tem no máximo um desafio e um desafio vai para no máximo uma equipe.
+- Distribuir um desafio aprovado vincula a equipe e muda o status para `DISTRIBUTED` na mesma operação.
+- A equipe destino não pode já ter outro desafio (422, sem sobrescrever).
+- Mover um desafio distribuído para outra equipe é atômico: libera a anterior e vincula a nova.
+- Retirar a equipe de um desafio `DISTRIBUTED` faz ele voltar para `APPROVED`.
+- Em `IN_DEVELOPMENT` ou `FINISHED`, mover ou retirar a equipe exige primeiro mudar o status explicitamente.
+- Desafio pode existir sem equipe durante preparação e análise.
 
 ## 13. Integração de inscrição
 

@@ -69,9 +69,15 @@ class TeamTest extends DatabaseTestCase
             ->assertJsonValidationErrors(['code']);
     }
 
-    public function test_team_has_no_challenge_link_in_this_phase(): void
+    public function test_challenge_cannot_be_set_through_the_team_endpoint(): void
     {
-        $this->assertFalse(Schema::hasColumn('teams', 'challenge_id'));
+        // Desde a Fase 4 a equipe tem challenge_id, mas ele só muda por PATCH /challenges/{challenge}/team.
+        $this->assertTrue(Schema::hasColumn('teams', 'challenge_id'));
+
+        $this->actingAs($this->admin())
+            ->patchJson("/api/v1/teams/{$this->teamA->id}", ['challenge_id' => 1])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['challenge_id']);
     }
 
     public function test_participant_joins_a_team_and_team_composition_is_listed(): void

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Database;
 
+use App\Models\Challenge;
+use App\Models\Company;
+use App\Models\CompanyRepresentative;
 use App\Models\Event;
 use App\Models\EventDay;
 use App\Models\Meeting;
@@ -50,6 +53,10 @@ class SeedTest extends TestCase
         $this->assertSame(12, Participant::query()->count());
         $this->assertSame(2, Team::query()->count());
         $this->assertSame(8, TeamMember::query()->where('active', true)->count());
+        $this->assertSame(3, Company::query()->count());
+        $this->assertSame(3, CompanyRepresentative::query()->count());
+        $this->assertSame(5, Challenge::query()->count());
+        $this->assertSame(1, Team::query()->whereNotNull('challenge_id')->count());
     }
 
     public function test_development_admin_exists_in_testing_linked_to_a_person(): void

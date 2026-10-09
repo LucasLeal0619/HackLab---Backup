@@ -56,7 +56,7 @@ O seed cria, **só em `local` e `testing`**, um Administrador de desenvolvimento
 - e-mail: `admin@hacklab.local`
 - senha: `hacklab123`
 
-E dados fictícios para desenvolver (`DevelopmentDataSeeder`): um evento de exemplo com 3 dias, dois setores, uma reunião geral, 3 turmas, 12 participantes, 2 equipes (8 participantes já em equipe) e dois usuários de exemplo, também com senha `hacklab123`:
+E dados fictícios para desenvolver (`DevelopmentDataSeeder`): um evento de exemplo com 3 dias, dois setores, uma reunião geral, 3 turmas, 12 participantes, 2 equipes (8 participantes já em equipe), 3 empresas com representantes (sem conta de acesso), 5 desafios em etapas diferentes (um distribuído) e dois usuários de exemplo, também com senha `hacklab123`:
 
 - `gestor@hacklab.local` (Gestor do "Setor Exemplo A")
 - `editor@hacklab.local` (Editor do "Setor Exemplo B")

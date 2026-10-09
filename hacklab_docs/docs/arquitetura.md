@@ -153,14 +153,14 @@ Não assumir quantidade fixa de participantes.
 
 ### Companies
 
-Empresa é entidade interna.
-Representantes são pessoas vinculadas à empresa.
+Empresa é entidade interna, de um evento.
+Representantes são pessoas (Person) vinculadas à empresa, sem conta de acesso obrigatória.
 
 Não criar empresa automaticamente a partir de inscrição externa.
 
 ### Challenges
 
-Desafios podem ser vinculados a empresas e equipes.
+Desafios pertencem ao evento e podem ter empresa. A equipe recebe o desafio (`teams.challenge_id`, fonte única da relação); a API de desafio devolve a equipe pela relação inversa.
 
 ### Sectors
 

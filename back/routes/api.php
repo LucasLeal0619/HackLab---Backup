@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ChallengeController;
 use App\Http\Controllers\Api\V1\ClassController;
+use App\Http\Controllers\Api\V1\CompanyController;
+use App\Http\Controllers\Api\V1\CompanyRepresentativeController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\EventDayController;
 use App\Http\Controllers\Api\V1\HealthController;
@@ -73,5 +76,23 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('/teams/{team}/members', [TeamController::class, 'members'])->name('teams.members.index');
         Route::post('/teams/{team}/members', [TeamController::class, 'addMember'])->name('teams.members.store');
         Route::delete('/teams/{team}/members/{participant}', [TeamController::class, 'removeMember'])->name('teams.members.destroy');
+
+        Route::get('/events/{event}/companies', [CompanyController::class, 'index'])->name('events.companies.index');
+        Route::post('/events/{event}/companies', [CompanyController::class, 'store'])->name('events.companies.store');
+        Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+        Route::patch('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+        Route::patch('/companies/{company}/status', [CompanyController::class, 'updateStatus'])->name('companies.status');
+
+        Route::get('/companies/{company}/representatives', [CompanyRepresentativeController::class, 'index'])->name('companies.representatives.index');
+        Route::post('/companies/{company}/representatives', [CompanyRepresentativeController::class, 'store'])->name('companies.representatives.store');
+        Route::patch('/company-representatives/{representative}', [CompanyRepresentativeController::class, 'update'])->name('company-representatives.update');
+        Route::patch('/company-representatives/{representative}/status', [CompanyRepresentativeController::class, 'updateStatus'])->name('company-representatives.status');
+
+        Route::get('/events/{event}/challenges', [ChallengeController::class, 'index'])->name('events.challenges.index');
+        Route::post('/events/{event}/challenges', [ChallengeController::class, 'store'])->name('events.challenges.store');
+        Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->name('challenges.show');
+        Route::patch('/challenges/{challenge}', [ChallengeController::class, 'update'])->name('challenges.update');
+        Route::patch('/challenges/{challenge}/status', [ChallengeController::class, 'updateStatus'])->name('challenges.status');
+        Route::patch('/challenges/{challenge}/team', [ChallengeController::class, 'updateTeam'])->name('challenges.team');
     });
 });

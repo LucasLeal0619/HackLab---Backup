@@ -22,6 +22,11 @@ class TeamResource extends JsonResource
             'name' => $this->name,
             'code' => $this->code,
             'status' => $this->status?->value,
+            'challenge' => $this->whenLoaded('challenge', fn () => $this->challenge === null ? null : [
+                'id' => $this->challenge->id,
+                'title' => $this->challenge->title,
+                'status' => $this->challenge->status?->value,
+            ]),
             'members_count' => $this->whenCounted('activeMemberships'),
             'members' => TeamMemberResource::collection($this->whenLoaded('activeMemberships')),
             'created_at' => $this->created_at?->toIso8601String(),

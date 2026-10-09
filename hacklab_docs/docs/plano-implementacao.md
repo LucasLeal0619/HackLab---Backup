@@ -137,10 +137,32 @@ Não implementar formação inteligente complexa antes do CRUD e regras básicas
 
 ## Fase 4 — Empresas e desafios
 
-- [ ] companies;
-- [ ] company_representatives;
-- [ ] challenges;
-- [ ] vínculo equipe/desafio.
+- [x] companies;
+- [x] company_representatives;
+- [x] challenges;
+- [x] vínculo equipe/desafio (`teams.challenge_id`, 1:1);
+- [x] permissões/policies, auditoria, seeds e testes.
+
+Concluída em 09/10/2026 (aguardando aprovação para commit): 196 testes passando em `hacklab_test` dentro do Docker, 19 migrations do zero, seed idempotente, `db-check`, Pint, distribuição validada via HTTP com cookies reais, nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| GET/POST | `/events/{event}/companies` | `companies.view` / `companies.manage`. Filtros: `status`, `type`, `search` (nome, razão social, documento) |
+| GET/PATCH | `/companies/{company}` | `companies.view` (com representantes e resumo dos desafios) / `companies.manage` |
+| PATCH | `/companies/{company}/status` | `companies.manage` |
+| GET/POST | `/companies/{company}/representatives` | `companies.view` (`?active=`) / `companies.manage` |
+| PATCH | `/company-representatives/{representative}` | `companies.manage` |
+| PATCH | `/company-representatives/{representative}/status` | `companies.manage` |
+| GET/POST | `/events/{event}/challenges` | `challenges.view` / `challenges.manage`. Filtros: `status`, `company_id`, `has_company`, `has_team`, `search` |
+| GET/PATCH | `/challenges/{challenge}` | `challenges.view` (com empresa e equipe) / `challenges.manage` |
+| PATCH | `/challenges/{challenge}/status` | `challenges.manage` |
+| PATCH | `/challenges/{challenge}/team` | `challenges.manage` — distribui, move ou retira (`team_id: null`) |
+
+`GET /events/{event}/teams` ganhou o filtro `has_challenge` e as equipes passaram a devolver o desafio.
+
+Especificação fechada em 09/10/2026: ver `banco-de-dados.md` (companies, company_representatives, challenges, teams.challenge_id) e `regras-de-negocio.md` §12 e §12.1.
 
 ## Fase 5 — Gestão operacional
 
