@@ -43,6 +43,14 @@ enum PermissionCode: string
     case OccurrencesCreate = 'occurrences.create';
     case OccurrencesOperate = 'occurrences.operate';
     case OccurrencesRoute = 'occurrences.route';
+    case JurorsView = 'jurors.view';
+    case JurorsManage = 'jurors.manage';
+    case EvaluationCriteriaView = 'evaluation_criteria.view';
+    case EvaluationCriteriaManage = 'evaluation_criteria.manage';
+    case EvaluationsProgressView = 'evaluations.progress.view';
+    case EvaluationsAllView = 'evaluations.all.view';
+    case EvaluationsOwn = 'evaluations.own';
+    case EvaluationsRequestRevision = 'evaluations.request_revision';
 
     public function label(): string
     {
@@ -79,6 +87,14 @@ enum PermissionCode: string
             self::OccurrencesCreate => 'Registrar ocorrências',
             self::OccurrencesOperate => 'Operar ocorrências do setor responsável (status, resolver, reabrir)',
             self::OccurrencesRoute => 'Gerir ocorrências do setor responsável (encaminhar, atribuição, envolvidos, gerar pendência)',
+            self::JurorsView => 'Consultar jurados e atribuições',
+            self::JurorsManage => 'Cadastrar jurados e gerenciar atribuições jurado ↔ equipe',
+            self::EvaluationCriteriaView => 'Consultar critérios de avaliação',
+            self::EvaluationCriteriaManage => 'Cadastrar e editar critérios de avaliação',
+            self::EvaluationsProgressView => 'Consultar progresso agregado das avaliações (sem notas)',
+            self::EvaluationsAllView => 'Consultar todas as avaliações e notas',
+            self::EvaluationsOwn => 'Avaliar as equipes atribuídas (como jurado da própria Person)',
+            self::EvaluationsRequestRevision => 'Solicitar revisão de avaliação enviada',
         };
     }
 
@@ -99,6 +115,7 @@ enum PermissionCode: string
                 self::CompaniesView, self::ChallengesView,
                 self::TasksView, self::TasksComment, self::TasksCreate, self::TasksOperate, self::TasksRoute,
                 self::OccurrencesView, self::OccurrencesComment, self::OccurrencesCreate, self::OccurrencesOperate, self::OccurrencesRoute,
+                self::EvaluationsProgressView,
             ],
             RoleCode::Editor->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
@@ -113,8 +130,9 @@ enum PermissionCode: string
                 self::CompaniesView, self::ChallengesView,
                 self::TasksView, self::TasksComment,
                 self::OccurrencesView, self::OccurrencesComment,
+                self::EvaluationsProgressView,
             ],
-            RoleCode::Juror->value => [self::EventsView],
+            RoleCode::Juror->value => [self::EventsView, self::EvaluationCriteriaView, self::EvaluationsOwn],
             RoleCode::Voter->value => [self::EventsView],
         ];
     }

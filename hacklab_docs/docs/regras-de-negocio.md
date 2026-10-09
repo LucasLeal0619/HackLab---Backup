@@ -203,12 +203,16 @@ Jurado
 Não usar:
 - empresa do jurado;
 - desafio da empresa;
+- representante de empresa;
 - categoria externa;
+- turma ou setor;
 
 para determinar automaticamente avaliações.
 
 Um jurado pode:
 - não possuir empresa;
+- não possuir conta de acesso (Juror ≠ User);
+- ser a mesma Person de um representante de empresa;
 - avaliar várias equipes.
 
 Uma equipe pode:
@@ -220,11 +224,31 @@ Sem atribuições:
 Nenhuma avaliação atribuída a você no momento.
 ```
 
+Para avaliar pelo sistema: Person + Juror ACTIVE + User ACTIVE da mesma Person com permissão de avaliar + atribuição ACTIVE. Ser Administrador não cria identidade de jurado.
+
+Revogar uma atribuição preserva a avaliação (histórico); ela só deixa de contar enquanto a atribuição estiver revogada. Reativar volta a contar. Jurado inativado continua com as atribuições ativas (esperadas no progresso) até o Administrador revogá-las explicitamente.
+
+### 10.1 Avaliação
+
+- Critérios numéricos (faixa e peso próprios). Estrutura trava na primeira avaliação do evento; só nome/descrição continuam editáveis.
+- Rascunho (`DRAFT`) pode ser parcial. Só o próprio jurado, com atribuição ativa, escreve. Um jurado nunca vê a avaliação de outro.
+- Envio (`SUBMITTED`) exige nota válida em todos os critérios ativos e trava a avaliação.
+- Correção: o Administrador **não altera nota**. Ele solicita revisão (`REVISION_REQUESTED`, motivo obrigatório); o próprio jurado corrige e reenvia.
+- Percentual da avaliação = média ponderada das notas normalizadas pela faixa de cada critério.
+- Resultado técnico da equipe = média dos percentuais das avaliações enviadas com atribuição ativa (consulta administrativa, não persistida).
+
+### 10.2 Quem vê o quê
+
+- Jurado: só a própria avaliação.
+- Administrador: todas (sem editar notas).
+- Gestor e Consultor: só progresso agregado, sem notas nem comentários.
+- Editor e Votante: sem acesso.
+
 ## 11. Avaliação técnica e voto público
 
 São domínios separados.
 
-Nunca misturar nota técnica de jurado com voto público antes da regra final de resultado.
+Nunca misturar nota técnica de jurado com voto público antes da regra final de resultado (Fase 7).
 
 ## 12. Empresas
 

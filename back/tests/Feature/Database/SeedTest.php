@@ -5,8 +5,12 @@ namespace Tests\Feature\Database;
 use App\Models\Challenge;
 use App\Models\Company;
 use App\Models\CompanyRepresentative;
+use App\Models\Evaluation;
+use App\Models\EvaluationCriterion;
 use App\Models\Event;
 use App\Models\EventDay;
+use App\Models\Juror;
+use App\Models\JurorTeamAssignment;
 use App\Models\Meeting;
 use App\Models\Occurrence;
 use App\Models\Participant;
@@ -46,7 +50,7 @@ class SeedTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->assertSame(6, Role::query()->count());
-        $this->assertSame(3, User::query()->count()); // admin + gestor + editor de exemplo
+        $this->assertSame(4, User::query()->count()); // admin + gestor + editor + jurado de exemplo
         $this->assertSame(1, Event::query()->count());
         $this->assertSame(3, EventDay::query()->count());
         $this->assertSame(3, Sector::query()->count()); // setores de exemplo A, B e C
@@ -62,6 +66,10 @@ class SeedTest extends TestCase
         $this->assertSame(5, Task::query()->count());
         $this->assertSame(4, Occurrence::query()->count());
         $this->assertSame(1, Task::query()->whereNotNull('source_occurrence_id')->count());
+        $this->assertSame(3, Juror::query()->count());
+        $this->assertSame(4, JurorTeamAssignment::query()->count());
+        $this->assertSame(3, EvaluationCriterion::query()->count());
+        $this->assertSame(2, Evaluation::query()->count());
     }
 
     public function test_development_admin_exists_in_testing_linked_to_a_person(): void

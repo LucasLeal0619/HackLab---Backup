@@ -201,12 +201,37 @@ Especificação fechada em 09/10/2026: ver `banco-de-dados.md` §4–5 e `regras
 
 ## Fase 6 — Jurados e avaliações
 
-- [ ] jurors;
-- [ ] juror_team_assignments;
-- [ ] evaluation_criteria;
-- [ ] evaluations;
-- [ ] evaluation_scores;
-- [ ] fluxo de submissão.
+- [x] jurors;
+- [x] juror_team_assignments;
+- [x] evaluation_criteria;
+- [x] evaluations;
+- [x] evaluation_scores;
+- [x] fluxo de submissão;
+- [x] revisão solicitada pelo Administrador e reenvio;
+- [x] progresso agregado e resultado técnico (derivados);
+- [x] permissões/policies, auditoria, seeds e testes.
+
+Concluída em 09/10/2026 (aguardando aprovação para commit): 297 testes passando em `hacklab_test` dentro do Docker, 26 migrations do zero, seed idempotente, `db-check`, Pint, fluxo jurado → envio → revisão → reenvio validado via HTTP com cookies reais, nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| GET/POST | `/events/{event}/jurors` | `jurors.view` / `jurors.manage`. Filtros: `status`, `company_id`, `search` |
+| GET/PATCH | `/jurors/{juror}` | `jurors.view` (com conta derivada e atribuições) / `jurors.manage` |
+| PATCH | `/jurors/{juror}/status` | `jurors.manage` |
+| GET/PUT | `/jurors/{juror}/assignments` | `jurors.view` / `jurors.manage` (lista final de equipes, um único log) |
+| GET/POST | `/events/{event}/evaluation-criteria` | `evaluation_criteria.view` (com `meta.locked`) / `evaluation_criteria.manage` |
+| PATCH | `/evaluation-criteria/{criterion}` · `/status` | `evaluation_criteria.manage` (travado após a 1ª avaliação, exceto nome/descrição) |
+| GET | `/events/{event}/my-evaluations` | `evaluations.own` (atribuições ativas da própria Person) |
+| PUT | `/juror-assignments/{assignment}/evaluation` | `evaluations.own` + mesma Person (rascunho) |
+| POST | `/juror-assignments/{assignment}/evaluation/submit` | `evaluations.own` + mesma Person (envio/reenvio) |
+| GET | `/events/{event}/evaluations` · `/evaluations/{evaluation}` | `evaluations.all.view` (ou a própria, para o jurado) |
+| POST | `/evaluations/{evaluation}/request-revision` | `evaluations.request_revision` |
+| GET | `/events/{event}/evaluation-progress` | `evaluations.progress.view` (sem notas) |
+| GET | `/events/{event}/technical-results` | `evaluations.all.view` (não é o resultado final) |
+
+Especificação fechada em 09/10/2026: ver `banco-de-dados.md` §6 e `regras-de-negocio.md` §10–11.
 
 Regra obrigatória:
 atribuição de equipes é explícita.

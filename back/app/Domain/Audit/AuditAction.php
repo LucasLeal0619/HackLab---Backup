@@ -4,7 +4,10 @@ namespace App\Domain\Audit;
 
 /**
  * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings, classes, participants, teams,
- * companies, challenges, tasks, occurrences.
+ * companies, challenges, tasks, occurrences, jurors, evaluations.
+ *
+ * Avaliações: salvar rascunho não gera auditoria; o log registra transições (quem, qual avaliação,
+ * jurado, equipe), não as notas e comentários.
  *
  * Pendências/ocorrências: comentário gera só interação (histórico), sem log de auditoria.
  */
@@ -130,4 +133,25 @@ final class AuditAction
 
     /** Ocorrência gerou pendência: um único log (sem TASK_CREATED separado). */
     public const OCCURRENCE_TASK_GENERATED = 'OCCURRENCE_TASK_GENERATED';
+
+    public const JUROR_CREATED = 'JUROR_CREATED';
+
+    public const JUROR_UPDATED = 'JUROR_UPDATED';
+
+    public const JUROR_STATUS_CHANGED = 'JUROR_STATUS_CHANGED';
+
+    /** Lista de equipes do jurado alterada numa operação: um único log com before/after. */
+    public const JUROR_ASSIGNMENTS_CHANGED = 'JUROR_ASSIGNMENTS_CHANGED';
+
+    public const EVALUATION_CRITERION_CREATED = 'EVALUATION_CRITERION_CREATED';
+
+    public const EVALUATION_CRITERION_UPDATED = 'EVALUATION_CRITERION_UPDATED';
+
+    public const EVALUATION_CRITERION_STATUS_CHANGED = 'EVALUATION_CRITERION_STATUS_CHANGED';
+
+    public const EVALUATION_SUBMITTED = 'EVALUATION_SUBMITTED';
+
+    public const EVALUATION_REVISION_REQUESTED = 'EVALUATION_REVISION_REQUESTED';
+
+    public const EVALUATION_RESUBMITTED = 'EVALUATION_RESUBMITTED';
 }

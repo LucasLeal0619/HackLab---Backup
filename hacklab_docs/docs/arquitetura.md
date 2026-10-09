@@ -197,7 +197,7 @@ Pendência e ocorrência são domínios separados, mas compartilham a mecânica 
 
 ### Jurors
 
-Jurado é pessoa elegível a avaliar.
+Jurado é papel de domínio de uma Person no evento (não é conta de acesso nem representante de empresa).
 
 Atribuição a equipes é explícita.
 
@@ -207,9 +207,13 @@ Jurado ↔ Equipes
 
 Empresa do jurado é opcional e nunca define automaticamente as equipes avaliadas.
 
+O usuário age como jurado quando `users.person_id = jurors.person_id`; a Policy de avaliação exige esse vínculo + atribuição ativa, então nem o Administrador escreve pela conta de outro jurado.
+
 ### Evaluations
 
 Avaliação técnica por jurado é separada do voto público.
+
+Rascunho → envio → (revisão solicitada pelo Administrador → reenvio pelo jurado). O Administrador nunca edita nota. Percentuais e resultado técnico são calculados na consulta, não persistidos.
 
 ### Voting
 

@@ -22,7 +22,7 @@ class LoginTest extends DatabaseTestCase
             ->assertJsonPath('data.person.id', $user->person_id)
             ->assertJsonPath('data.sector.id', $user->sector_id)
             ->assertJsonPath('data.permissions', [
-                'challenges.view', 'classes.view', 'companies.view', 'events.view', 'meetings.manage',
+                'challenges.view', 'classes.view', 'companies.view', 'evaluations.progress.view', 'events.view', 'meetings.manage',
                 'meetings.view', 'occurrences.comment', 'occurrences.create', 'occurrences.operate',
                 'occurrences.route', 'occurrences.view', 'participants.view', 'people.view', 'sectors.manage',
                 'sectors.view', 'tasks.comment', 'tasks.create', 'tasks.operate', 'tasks.route', 'tasks.view', 'teams.view',

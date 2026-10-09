@@ -228,6 +228,13 @@ Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCo
 | `tasks.create` / `occurrences.create` | ✓ | ✓ | ✓ | | | |
 | `tasks.operate` / `occurrences.operate` | ✓ | ✓ | ✓ | | | |
 | `tasks.route` / `occurrences.route` | ✓ | ✓ | | | | |
+| `jurors.view` / `jurors.manage` | ✓ | | | | | |
+| `evaluation_criteria.view` | ✓ | | | | ✓ | |
+| `evaluation_criteria.manage` | ✓ | | | | | |
+| `evaluations.progress.view` | ✓ | ✓ | | ✓ | | |
+| `evaluations.all.view` | ✓ | | | | | |
+| `evaluations.own` | ✓ | | | | ✓ | |
+| `evaluations.request_revision` | ✓ | | | | | |
 
 Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Novas permissões entram junto com os módulos que as usam.
 
@@ -594,46 +601,79 @@ Usuário com pendência/ocorrência **aberta** atribuída não pode mudar de set
 
 ## 6. Jurados e avaliações
 
+Separação obrigatória:
+
+```text
+Person
+  ├── User?                  credencial de acesso
+  ├── CompanyRepresentative? vínculo com empresa
+  └── Juror?                 papel de domínio no Hackathon
+```
+
+Juror ≠ User ≠ CompanyRepresentative ≠ categoria externa JUROR. O vínculo User ↔ Juror é `users.person_id = jurors.person_id` (sem `user_id` em `jurors`). Criar um não cria o outro.
+
 ### jurors
 
 ```text
 id
 event_id FK
 person_id FK
-company_id FK nullable
-status
+company_id FK nullable     só contexto; nunca define equipes
+status                     ACTIVE | INACTIVE
+notes nullable
 created_at
 updated_at
 
 unique(event_id, person_id)
 ```
 
+- FK composta `(company_id, event_id) → companies`; `unique(id, event_id)` como alvo de FKs compostas.
+- Identidade (nome, e-mail, telefone, cargo) só em `people`. Sem DELETE.
+- O Resource devolve um resumo derivado da conta (`has_account`, `account_status`, `account_role`, `access_ready`), sem coluna.
+
 ### juror_team_assignments
 
-```text
-id
-juror_id FK
-team_id FK
-assigned_by_user_id FK
-created_at
-
-unique(juror_id, team_id)
-```
-
-Nunca criar atribuição por empresa automaticamente.
-
-### evaluation_criteria
+Atribuição sempre explícita (nunca por empresa, desafio, representante, categoria externa, turma ou setor).
 
 ```text
 id
 event_id FK
-name
-description nullable
-weight decimal
-max_score decimal
-sort_order
-active
+juror_id FK
+team_id FK
+status                     ACTIVE | REVOKED
+assigned_by_user_id FK
+assigned_at
+revoked_by_user_id FK nullable
+revoked_at nullable
+created_at
+updated_at
+
+unique(juror_id, team_id)  reativar reutiliza o registro
 ```
+
+- FKs compostas com `event_id` para jurado e equipe. Check: `REVOKED` ⇔ `revoked_at` preenchido.
+- Nova atribuição exige jurado e equipe ativos. Revogar não apaga avaliação.
+- Gestão em lote: `PUT /jurors/{juror}/assignments` com a lista final de equipes (um único log).
+
+### evaluation_criteria
+
+Numéricos nesta fase (sem conversão de conceito).
+
+```text
+id
+event_id FK
+name                       único por evento sem diferença de caixa
+description nullable
+min_score decimal
+max_score decimal          > min_score
+weight decimal             > 0 (pesos não precisam somar 100)
+sort_order                 >= 1
+active
+created_at
+updated_at
+```
+
+Travamento: depois que existe qualquer avaliação do evento (inclusive `DRAFT`), não se cria critério nem se altera faixa, peso, ordem ou ativo. Só nome e descrição continuam editáveis (texto, sem mudar o significado). Sem DELETE.
 
 ### evaluations
 
@@ -642,26 +682,50 @@ id
 event_id FK
 juror_id FK
 team_id FK
-status
+status                     DRAFT | SUBMITTED | REVISION_REQUESTED
 comments nullable
 submitted_at nullable
+revision_reason nullable
+revision_requested_at nullable
+revision_requested_by_user_id FK nullable
 created_at
 updated_at
 
 unique(juror_id, team_id)
 ```
 
+- FK `(juror_id, team_id) → juror_team_assignments(juror_id, team_id)`: só existe avaliação de atribuição existente. FKs compostas com `event_id` para jurado e equipe.
+- Check: `SUBMITTED` exige `submitted_at`.
+- Trigger: avaliação `SUBMITTED` não muda comentário nem volta para `DRAFT`; jurado, equipe e evento não mudam.
+- Criada só quando o jurado salva pela primeira vez (não há avaliações vazias pré-criadas).
+
 ### evaluation_scores
 
 ```text
 id
+event_id FK
 evaluation_id FK
 criterion_id FK
 score decimal
 comment nullable
+created_at
+updated_at
 
 unique(evaluation_id, criterion_id)
 ```
+
+- FKs compostas com `event_id` para avaliação e critério.
+- Trigger: `min_score <= score <= max_score` do critério; notas de avaliação `SUBMITTED` não são inseridas, alteradas nem apagadas.
+
+### Cálculo (não persistido)
+
+```text
+normalizado(critério) = (score - min_score) / (max_score - min_score)
+percentual(avaliação) = 100 * Σ(normalizado * peso) / Σ(peso)      critérios ativos
+resultado técnico(equipe) = média dos percentuais das avaliações SUBMITTED com atribuição ACTIVE
+```
+
+Sem arredondar intermediários (a API apresenta com duas casas). Não é o resultado final do Hackathon e não usa voto público.
 
 ## 7. Votação pública
 

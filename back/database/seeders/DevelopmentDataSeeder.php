@@ -6,7 +6,9 @@ use App\Domain\Challenges\Enums\ChallengeStatus;
 use App\Domain\Companies\Enums\CompanyStatus;
 use App\Domain\Companies\Enums\CompanyType;
 use App\Domain\Demands\Enums\DemandPriority;
+use App\Domain\Evaluations\EvaluationService;
 use App\Domain\Events\Enums\EventStatus;
+use App\Domain\Jurors\JurorService;
 use App\Domain\Meetings\Enums\MeetingStatus;
 use App\Domain\Occurrences\Enums\OccurrenceCategory;
 use App\Domain\Occurrences\OccurrenceService;
@@ -18,7 +20,11 @@ use App\Domain\Users\Enums\UserStatus;
 use App\Models\Challenge;
 use App\Models\Company;
 use App\Models\CompanyRepresentative;
+use App\Models\Evaluation;
+use App\Models\EvaluationCriterion;
 use App\Models\Event;
+use App\Models\Juror;
+use App\Models\JurorTeamAssignment;
 use App\Models\Occurrence;
 use App\Models\Participant;
 use App\Models\Person;
@@ -40,6 +46,9 @@ use Illuminate\Database\Seeder;
  *
  * Pendências e ocorrências intersetoriais são criadas pelos Services (com histórico e referência
  * gerada pelo banco), usando os setores fictícios deste seeder.
+ *
+ * Jurados: tudo explícito, sem automação de domínio. O seeder cria a conta jurado@hacklab.local
+ * por conta própria (o JurorService nunca cria User).
  *
  * O código do sistema não depende desses dados (nomes, datas e número de dias vêm do banco).
  */
@@ -97,7 +106,90 @@ class DevelopmentDataSeeder extends Seeder
 
         if ($admin !== null) {
             $this->demands($event, $admin, $sectorA, $sectorB, $sectorC);
+            $this->jurorsAndEvaluations($event, $admin);
         }
+    }
+
+    /**
+     * Jurados (com/sem empresa, com/sem conta), atribuições explícitas, critérios e avaliações.
+     */
+    private function jurorsAndEvaluations(Event $event, User $admin): void
+    {
+        $jurors = app(JurorService::class);
+
+        // Critérios com faixas e pesos diferentes (o cálculo normaliza; pesos não somam 100).
+        foreach ([
+            ['Inovação', 0, 10, 3, 1],
+            ['Viabilidade', 1, 5, 2, 2],
+            ['Apresentação', 0, 10, 1, 3],
+        ] as [$name, $min, $max, $weight, $order]) {
+            EvaluationCriterion::query()->firstOrCreate(
+                ['event_id' => $event->id, 'name' => $name],
+                ['min_score' => $min, 'max_score' => $max, 'weight' => $weight, 'sort_order' => $order, 'active' => true],
+            );
+        }
+
+        $alfa = Company::query()->where('event_id', $event->id)->where('name', 'Alfa Tecnologia (exemplo)')->first();
+        $teams = Team::query()->where('event_id', $event->id)->orderBy('name')->get()->keyBy('name');
+        $team1 = $teams->get('Equipe Exemplo 1');
+        $team2 = $teams->get('Equipe Exemplo 2');
+
+        // 1) Representante da Alfa que também é jurado (mesma Person, sem conta).
+        $representative = Person::query()->where('email', 'representante01@hacklab.local')->first();
+        $repJuror = $this->juror($jurors, $event, $representative, $alfa?->id);
+
+        // 2) Jurado independente, com conta JUROR criada explicitamente aqui.
+        $independentPerson = Person::query()->firstOrCreate(['email' => 'jurado@hacklab.local'], ['full_name' => 'Jurado Exemplo']);
+        $independent = $this->juror($jurors, $event, $independentPerson, null);
+        $jurorUser = User::query()->where('email', 'jurado@hacklab.local')->first() ?? User::query()->create([
+            'person_id' => $independentPerson->id,
+            'role_id' => Role::forCode(RoleCode::Juror)->id,
+            'email' => 'jurado@hacklab.local',
+            'password' => self::DEMO_PASSWORD,
+            'status' => UserStatus::Active,
+            'email_verified_at' => now(),
+        ]);
+
+        // 3) Jurado sem conta (Juror não implica User).
+        $noAccountPerson = Person::query()->firstOrCreate(['email' => 'jurado.semconta@hacklab.local'], ['full_name' => 'Jurado Sem Conta (exemplo)']);
+        $noAccount = $this->juror($jurors, $event, $noAccountPerson, null);
+
+        if ($team1 === null || $team2 === null) {
+            return;
+        }
+
+        // Atribuições explícitas: equipe 1 com dois jurados; jurado independente com duas equipes.
+        $jurors->syncAssignments($independent, [$team1->id, $team2->id], $admin);
+        $jurors->syncAssignments($repJuror, [$team1->id], $admin);
+        $jurors->syncAssignments($noAccount, [$team2->id], $admin);
+
+        $criteria = EvaluationCriterion::query()->where('event_id', $event->id)->orderBy('sort_order')->get();
+        $evaluations = app(EvaluationService::class);
+        $assignment = fn (Juror $juror, Team $team) => JurorTeamAssignment::query()->where('juror_id', $juror->id)->where('team_id', $team->id)->first();
+
+        // Avaliação enviada (equipe 1) e rascunho parcial (equipe 2), pelo próprio jurado.
+        if (! Evaluation::query()->where('juror_id', $independent->id)->where('team_id', $team1->id)->exists()) {
+            $evaluations->submit($assignment($independent, $team1), $jurorUser, [
+                'comments' => 'Boa proposta, apresentação clara.',
+                'scores' => $criteria->map(fn ($c) => ['criterion_id' => $c->id, 'score' => (float) $c->max_score - 1])->all(),
+            ]);
+        }
+
+        if (! Evaluation::query()->where('juror_id', $independent->id)->where('team_id', $team2->id)->exists()) {
+            $evaluations->saveDraft($assignment($independent, $team2), $jurorUser, [
+                'scores' => [['criterion_id' => $criteria->first()->id, 'score' => 7]],
+            ]);
+        }
+    }
+
+    private function juror(JurorService $jurors, Event $event, ?Person $person, ?int $companyId): ?Juror
+    {
+        if ($person === null) {
+            return null;
+        }
+
+        return Juror::query()->where('event_id', $event->id)->where('person_id', $person->id)->first()
+            ?? $jurors->create($event, ['person_id' => $person->id, 'company_id' => $companyId]);
     }
 
     /**

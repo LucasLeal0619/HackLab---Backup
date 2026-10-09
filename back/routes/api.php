@@ -5,10 +5,14 @@ use App\Http\Controllers\Api\V1\ChallengeController;
 use App\Http\Controllers\Api\V1\ClassController;
 use App\Http\Controllers\Api\V1\CompanyController;
 use App\Http\Controllers\Api\V1\CompanyRepresentativeController;
+use App\Http\Controllers\Api\V1\EvaluationController;
+use App\Http\Controllers\Api\V1\EvaluationCriterionController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\EventDayController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\JurorController;
 use App\Http\Controllers\Api\V1\MeetingController;
+use App\Http\Controllers\Api\V1\MyEvaluationController;
 use App\Http\Controllers\Api\V1\OccurrenceController;
 use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PersonController;
@@ -117,5 +121,32 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/occurrences/{occurrence}/resolve', [OccurrenceController::class, 'resolve'])->name('occurrences.resolve');
         Route::post('/occurrences/{occurrence}/reopen', [OccurrenceController::class, 'reopen'])->name('occurrences.reopen');
         Route::post('/occurrences/{occurrence}/tasks', [OccurrenceController::class, 'generateTask'])->name('occurrences.tasks.store');
+
+        // Jurados e atribuições explícitas.
+        Route::get('/events/{event}/jurors', [JurorController::class, 'index'])->name('events.jurors.index');
+        Route::post('/events/{event}/jurors', [JurorController::class, 'store'])->name('events.jurors.store');
+        Route::get('/jurors/{juror}', [JurorController::class, 'show'])->name('jurors.show');
+        Route::patch('/jurors/{juror}', [JurorController::class, 'update'])->name('jurors.update');
+        Route::patch('/jurors/{juror}/status', [JurorController::class, 'updateStatus'])->name('jurors.status');
+        Route::get('/jurors/{juror}/assignments', [JurorController::class, 'assignments'])->name('jurors.assignments.index');
+        Route::put('/jurors/{juror}/assignments', [JurorController::class, 'syncAssignments'])->name('jurors.assignments.sync');
+
+        // Critérios de avaliação.
+        Route::get('/events/{event}/evaluation-criteria', [EvaluationCriterionController::class, 'index'])->name('events.evaluation-criteria.index');
+        Route::post('/events/{event}/evaluation-criteria', [EvaluationCriterionController::class, 'store'])->name('events.evaluation-criteria.store');
+        Route::patch('/evaluation-criteria/{criterion}', [EvaluationCriterionController::class, 'update'])->name('evaluation-criteria.update');
+        Route::patch('/evaluation-criteria/{criterion}/status', [EvaluationCriterionController::class, 'updateStatus'])->name('evaluation-criteria.status');
+
+        // Área do jurado (Person autenticada).
+        Route::get('/events/{event}/my-evaluations', [MyEvaluationController::class, 'index'])->name('events.my-evaluations.index');
+        Route::put('/juror-assignments/{assignment}/evaluation', [MyEvaluationController::class, 'save'])->name('juror-assignments.evaluation.save');
+        Route::post('/juror-assignments/{assignment}/evaluation/submit', [MyEvaluationController::class, 'submit'])->name('juror-assignments.evaluation.submit');
+
+        // Visão administrativa e agregada.
+        Route::get('/events/{event}/evaluations', [EvaluationController::class, 'index'])->name('events.evaluations.index');
+        Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
+        Route::post('/evaluations/{evaluation}/request-revision', [EvaluationController::class, 'requestRevision'])->name('evaluations.request-revision');
+        Route::get('/events/{event}/evaluation-progress', [EvaluationController::class, 'progress'])->name('events.evaluation-progress');
+        Route::get('/events/{event}/technical-results', [EvaluationController::class, 'technicalResults'])->name('events.technical-results');
     });
 });
