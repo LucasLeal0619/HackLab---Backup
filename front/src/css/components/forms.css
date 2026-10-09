@@ -1,0 +1,55 @@
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-3); font-size: var(--text-md); }
+.field span { font-weight: 600; font-size: var(--text-sm); color: var(--text); }
+.field em { color: var(--orange-dark); font-style: normal; margin-left: 2px; }
+.field small { color: var(--muted); font-weight: 400; font-size: var(--text-sm); }
+.field.has-error .input { border-color: var(--danger); }
+.field-error { color: var(--danger); }
+.input, select.input, textarea.input {
+  width: 100%;
+  min-height: var(--control);
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color var(--ease), box-shadow var(--ease);
+}
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%234e5e6e' d='M1.2 1.4 6 6.2l4.8-4.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+textarea.input { min-height: 96px; resize: vertical; }
+.input::placeholder { color: var(--disabled); }
+.input:focus-visible, select.input:focus-visible, textarea.input:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+  border-color: var(--blue);
+}
+.input:disabled, select.input:disabled, textarea.input:disabled { color: var(--disabled); background: var(--surface); }
+.input-icon { position: relative; }
+.input-icon > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8b9aab; }
+.input-icon .input { padding-left: 38px; }
+.input-icon:has(.eye) .input { padding-right: 40px; }
+.eye {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  border: 0;
+  background: transparent;
+  color: #6d7c8d;
+}
+.eye svg { display: block; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-4); }
+.span-2 { grid-column: span 2; }

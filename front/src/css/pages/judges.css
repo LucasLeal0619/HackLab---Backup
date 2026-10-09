@@ -1,0 +1,34 @@
+.eval-head { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.eval-head p { margin: 0 0 4px; }
+.eval-progress { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.eval-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+.eval-row p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.eval-row .field { margin: 0; }
+/* Área do Jurado (tablet first) */
+.judge-home { max-width: 860px; margin: 0 auto; }
+.judge-head h1 { margin: 0; font-size: 26px; }
+.judge-head p { margin: 4px 0 16px; color: var(--muted); }
+.judge-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.judge-card { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 16px 18px; }
+.judge-card h2 { margin: 0; font-size: 18px; }
+.judge-card p { margin: 2px 0 0; }
+.judge-card .btn { min-height: 48px; min-width: 132px; }
+.eval-actions { position: sticky; bottom: 0; z-index: 5; justify-content: flex-end; padding: 12px 0; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+.eval-actions .btn { min-height: 48px; }
+/* Tablet: 768–1199px */
+@media (max-width: 1199px) {
+  .eval-row { grid-template-columns: 1fr; align-items: stretch; }
+  .eval-row .input { min-height: 48px; font-size: 16px; }
+  .eval-head { flex-direction: column; }
+}
+.invite-code { margin: 0 0 8px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 30px; font-weight: 700; letter-spacing: .06em; color: var(--blue); text-align: center; user-select: all; }

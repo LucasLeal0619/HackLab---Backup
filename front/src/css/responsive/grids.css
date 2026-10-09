@@ -1,0 +1,12 @@
+@media (max-width: 1180px) {
+  .quick.ops { grid-template-columns: 1fr 1fr; }
+  .eval-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 1360px) {
+  .content { width: min(var(--content), calc(100% - var(--space-6))); }
+  .hero-meta, .grid.cols-5 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1180px) {
+  .hero, .grid.cols-4, .quick, .split, .wheels, .day-cards { grid-template-columns: 1fr 1fr; }
+  .grid.cols-3, .grid.cols-5 { grid-template-columns: 1fr 1fr; }
+}

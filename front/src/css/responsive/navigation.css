@@ -1,0 +1,21 @@
+@media (max-width: 1199px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 45;
+    width: min(320px, 86vw);
+    height: 100%;
+    transform: translateX(-105%);
+    transition: transform .2s ease;
+    overscroll-behavior: contain;
+  }
+  .sidebar.open { transform: none; box-shadow: var(--shadow-raised); }
+  .nav-backdrop { display: block; position: fixed; inset: 0; z-index: 44; background: rgba(15, 32, 51, .45); }
+  .icon-btn.menu-btn { display: inline-flex; }
+  .side-brand { justify-content: space-between; }
+  .nav-close { display: inline-flex; color: #fff; background: transparent; border-color: rgba(255, 255, 255, .35); }
+  .top-brand { display: inline-flex; margin-right: auto; font-size: 18px; color: var(--blue); }
+  .top-brand .lab { color: var(--orange); }
+  .topbar .top-tools { margin-left: 0; }
+}

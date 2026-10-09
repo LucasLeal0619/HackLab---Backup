@@ -1,0 +1,151 @@
+# Infraestrutura
+
+Decisão vigente desde 09/10/2026. Substitui as decisões anteriores (Supabase sem Docker local; MySQL + Oracle VM).
+
+## 1. Princípio
+
+O sistema é sempre **Vue + Laravel + PostgreSQL**. Onde ele roda é escolha de hospedagem, não dependência do código.
+
+| Papel | Desenvolvimento e testes | Produção (atual) |
+|---|---|---|
+| Frontend Vue | `npm run dev` local | Static Site (Render) |
+| API Laravel | container Docker local | Render Web Service (Free, imagem Docker) |
+| PostgreSQL | container Docker local (`hacklab_dev`, `hacklab_test`) | Supabase (PostgreSQL gerenciado) |
+
+```text
+DESENVOLVIMENTO                          PRODUÇÃO
+
+Vue (npm run dev, localhost:5174)        Vue — Static Site
+        ↓                                        ↓
+Laravel (Docker, localhost:8000)         Laravel API — Render Web Service
+        ↓                                        ↓
+PostgreSQL (Docker)                      PostgreSQL — Supabase
+├── hacklab_dev
+└── hacklab_test                         Even3 → Laravel API → PostgreSQL
+```
+
+Função do Docker: **ambiente reproduzível de desenvolvimento e testes**. Ele não é a infraestrutura de produção atual. Se um dia o Senac pedir hospedagem própria, monta-se uma stack Docker de produção (Nginx + Laravel + PostgreSQL) sem mudar o código.
+
+## 2. Desenvolvimento
+
+```text
+docker-compose.yml (raiz)
+├── app       Laravel (servidor embutido do PHP) → http://localhost:8000
+└── postgres  PostgreSQL 17 → hacklab_dev + hacklab_test
+              porta publicada só em 127.0.0.1:5442
+
+front/        Vue com Vite, fora do Docker → http://localhost:5174
+```
+
+- O código de `back/` é montado no container (`./back:/var/www/html`), então a edição é imediata.
+- Os dados ficam no volume `postgres-data`. `docker compose down -v` apaga tudo.
+- O Laravel local nunca conecta no Supabase. A conexão Supabase existe só no ambiente do Render.
+
+Passo a passo no [README da raiz](../../README.md).
+
+## 3. Produção
+
+### 3.1 Supabase (banco)
+
+Usado **somente como PostgreSQL gerenciado**. Não usar Supabase Auth, Supabase JS, Storage, Realtime, Edge Functions nem Data API pelo frontend. Laravel continua dono de autenticação, autorização, regras, migrations e integração Even3.
+
+Conexão do Laravel em produção, conforme o [guia Laravel do Supabase](https://supabase.com/docs/guides/getting-started/quickstarts/laravel) consultado em 09/10/2026:
+
+- **Session pooler (porta 5432)**, string copiada do botão **Connect** do projeto. É IPv4, então funciona no Render; a documentação do Render não confirma saída IPv6, e a conexão direta do Supabase é IPv6;
+- **não** usar o Transaction pooler (6543): ele não suporta os prepared statements do PDO;
+- `sslmode=require` (ou `verify-full` com o certificado CA do Supabase). O backend recusa iniciar em produção com sslmode inseguro;
+- tabelas no schema `hacklab` (`search_path`), não em `public`, que o Supabase expõe pela Data API. O mesmo schema é usado no Docker local, para dev, teste e produção se comportarem igual.
+
+SQL a rodar **uma vez** no SQL Editor do projeto Supabase de produção (cria só o schema, sem tabelas):
+
+```sql
+create schema if not exists hacklab;
+
+-- O HackLab não usa a Data API: os papéis dela não recebem acesso.
+revoke all on schema hacklab from anon, authenticated;
+alter default privileges in schema hacklab revoke all on tables from anon, authenticated;
+alter default privileges in schema hacklab revoke all on sequences from anon, authenticated;
+alter default privileges in schema hacklab revoke all on functions from anon, authenticated;
+```
+
+Autorização fica só no Laravel (Policies/Gates). Não implementar regras de negócio em RLS.
+
+### 3.2 Render (API Laravel)
+
+Fatos da documentação do Render consultada em 09/10/2026 ([Free](https://render.com/docs/free), [Docker](https://render.com/docs/docker)):
+
+- PHP não é runtime nativo do Render: a API sobe como **serviço Docker**, a partir de um alvo de produção do `back/Dockerfile` (a criar na etapa de deploy);
+- o Free Web Service **dorme após 15 minutos sem tráfego** e leva **cerca de 1 minuto** para acordar;
+- 750 horas grátis por mês por workspace. Sem disco persistente, sem shell/SSH, sem one-off jobs, uma instância só. Arquivos locais somem a cada deploy, restart ou sleep;
+- variáveis de ambiente são configuradas no painel e também chegam ao build como build args, então segredos não podem ser usados no Dockerfile.
+
+Consequências para o HackLab:
+- uploads (documentos) não podem ficar no disco do container. Quando o módulo de documentos existir, decidir o armazenamento externo por interface S3-compatível, sem SDK proprietário;
+- sem shell: `php artisan migrate --force` roda no start do container (ou no pre-deploy, se o plano permitir);
+- sessão, cache e fila ficam no PostgreSQL (drivers `database`), não em arquivo;
+- **não** criar mecanismo artificial para manter o serviço acordado. Antes de momentos críticos, chamar o endpoint de readiness (seção 5).
+
+### 3.3 Frontend (Static Site)
+
+- Em produção: `npm run build`, e o `dist/` publicado como Static Site (Render Static Site é grátis);
+- a URL da API vem de variável de ambiente no build: `VITE_API_URL`. Nunca fixar domínio no código;
+- rewrite `/* → /index.html` para as rotas do Vue.
+
+### 3.4 ⚠️ Cookie de sessão entre front e API (pendente de PoC)
+
+`onrender.com` está na [Public Suffix List](https://publicsuffix.org/list/public_suffix_list.dat). Para o navegador, `hacklab.onrender.com` (front) e `hacklab-api.onrender.com` (API) são **sites diferentes**. O cookie de sessão do Sanctum (SPA, HttpOnly) viraria cookie de terceiro, que Safari e Chrome restringem. Sem resolver isso, o login por cookie não funciona de forma confiável.
+
+Opções, em ordem de preferência:
+
+1. **Rewrite no Static Site:** regra `/api/*` e `/sanctum/*` → URL da API no Render. O navegador vê front e API na mesma origem: sem CORS, cookie primário. A documentação do Render diz que o destino de um rewrite pode ser "a full, publicly accessible URL", mas não detalha cookies, métodos e headers. **Precisa de PoC** (login, POST com CSRF, Set-Cookie).
+2. **Domínio próprio:** `app.<dominio>` (front) e `api.<dominio>` (API), mesmo site. Funciona com Sanctum SPA (`SESSION_DOMAIN=.<dominio>`). Exige um domínio.
+3. Token Bearer em vez de cookie. Último recurso, porque contraria a decisão de cookie HttpOnly (`CLAUDE.md` §8).
+
+Decisão: fazer a PoC da opção 1 no primeiro deploy, antes de ligar o login do front na API.
+
+## 4. Readiness antes de momentos críticos
+
+Endpoint previsto: `GET /api/v1/system/readiness`. Valida no mínimo:
+- Laravel respondendo;
+- conexão com o PostgreSQL;
+- o banco aceita consulta.
+
+Uso: chamar manualmente, ou por um agendamento pontual, alguns minutos antes da abertura de cada dia, da votação do terceiro dia e da apuração. Absorve o cold start de cerca de 1 minuto antes do público chegar. Não é ping contínuo.
+
+## 5. Dia 3 e capacidade do Render Free
+
+O Render Free é aceito para começar, mas **não está aprovado para o pico do terceiro dia** sem teste de carga.
+
+Antes do evento, testar em degraus de **50, 100, 200 e 300 usuários concorrentes**, nos fluxos:
+- login;
+- consulta de equipes;
+- votação (abrir a tela e gravar o voto);
+- jurados (avaliações);
+- resultados.
+
+Critérios a medir: tempo de resposta (p95), taxa de erro, uso de memória da instância e conexões no pooler do Supabase.
+
+Plano de contingência, se o Free não aguentar: aumentar temporariamente o plano/compute do serviço no Render, ou subir o mesmo Laravel em outro host. Banco (Supabase) e frontend não mudam.
+
+## 6. Portabilidade (sair do Render/Supabase)
+
+O código não usa nada proprietário do Render nem do Supabase. Para trocar de hospedagem:
+
+1. Banco: `pg_dump` do Supabase (schema `hacklab`) e `pg_restore` no PostgreSQL novo.
+2. API: a mesma imagem Docker em outro host, com as variáveis de ambiente.
+3. Front: o mesmo `dist/` em qualquer servidor estático, com `VITE_API_URL` do novo endereço.
+4. Validar `/api/v1/health` e o login, depois trocar o DNS.
+
+## 7. Backup
+
+- O Supabase faz backups conforme o plano do projeto (verificar retenção no plano usado).
+- Além disso, `pg_dump` periódico do schema `hacklab` para um armazenamento **fora** do Supabase. O backup não pode depender da mesma conta.
+- Teste de restauração no `hacklab_dev` local antes do evento.
+
+## 8. Histórico de decisões
+
+| Data | Decisão | Situação |
+|---|---|---|
+| 08/10/2026 | PostgreSQL só no Supabase, sem Docker local | substituída |
+| 08/10/2026 | MySQL 8.4 + Docker, produção numa VM Oracle Cloud (Always Free) | substituída. Oracle fica como alternativa futura de host para uma stack Docker de produção |
+| 09/10/2026 | PostgreSQL em todos os ambientes; Docker para dev/testes; Render + Supabase em produção | **vigente** |

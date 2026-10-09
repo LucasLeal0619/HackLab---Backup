@@ -1,0 +1,23 @@
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: flex-start;
+  width: max-content;
+  gap: 2px;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.logo-img {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+.logo-name {
+  white-space: nowrap;
+}
+.logo .hack { color: #fff; }
+.logo .lab { color: var(--orange); }
+.logo.on-light .hack { color: var(--blue); }

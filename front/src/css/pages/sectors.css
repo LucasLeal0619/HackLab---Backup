@@ -1,0 +1,22 @@
+.sector-picks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: var(--space-4); }
+.sector-pick {
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-width: 0;
+}
+.sector-pick.on { border-color: var(--blue); box-shadow: inset 3px 0 0 var(--orange); }
+.sector-pick b { display: block; color: var(--blue); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sector-pick small { color: var(--muted); font-size: 12px; }
+.mini-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.mini-block { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fff; }
+.mini-block h3 { margin: 0 0 6px; font-size: 14px; }
+@media (max-width: 1100px) {
+  .sector-picks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.sector-line { grid-template-columns: 10px 1fr auto auto; }
+.sector-occ { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.sector-occ h3 { margin: 0 0 4px; }
+.sector-occ p { margin: 0 0 4px; }

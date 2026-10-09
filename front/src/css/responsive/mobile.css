@@ -1,0 +1,66 @@
+/* Celular */
+@media (max-width: 767px) {
+  .content { width: calc(100% - 24px); padding: 12px 0 40px; }
+
+  /* Cabeçalho da página: título, descrição e ações empilhadas (principal primeiro) */
+  .page-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .page-head .page-actions { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .page-head .page-actions .btn, .page-head .page-actions .badge { width: 100%; }
+
+  /* Áreas de toque */
+  .btn { min-height: var(--touch); }
+  .btn.small { min-height: 40px; padding: 0 12px; }
+  .icon-btn { min-width: var(--touch); min-height: var(--touch); }
+  .chip { min-height: 40px; }
+  .linkish { min-height: 36px; }
+  .tabs { flex-wrap: wrap; }
+  .tabs button { min-height: var(--touch); white-space: nowrap; }
+  .input-icon .eye { min-width: var(--touch); min-height: var(--touch); }
+  .demo-list button { min-height: 40px; }
+  input.input, select.input, textarea.input { font-size: 16px; min-height: var(--touch); }
+  .page-actions { flex-wrap: wrap; }
+  .page-actions:not(.page-head .page-actions) .btn { flex: 1 1 auto; }
+
+  /* Filtros: busca + botão "Filtros"; os demais abrem em painel */
+  .filters { display: grid; grid-template-columns: 1fr; }
+  .filters .input, .filters select.input, .filters .field { width: 100%; min-width: 0; max-width: none; }
+  .filter-panel { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .filter-main { display: flex; gap: 8px; }
+  .filter-main > .input:first-child { flex: 1 1 auto; max-width: none; min-width: 0; }
+  .filter-toggle { display: inline-flex; flex: 0 0 auto; }
+  .filter-more { display: none; }
+  .filter-panel.open .filter-more { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+  .filter-panel.open .filter-more .input { width: 100%; min-width: 0; }
+  .filter-panel-actions { display: flex; gap: 8px; }
+  .filter-panel-actions .btn { flex: 1; }
+
+  /* Tabelas viram cards (data-label preenchido por responsive-tables.js) */
+  .table-wrap:has(> table.cardable) { border: 0; background: transparent; overflow: visible; border-radius: 0; }
+  table.cardable, table.cardable tbody { display: block; }
+  table.cardable thead { display: none; }
+  table.cardable tr { display: grid; gap: 2px; margin-bottom: 10px; padding: 12px 14px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+  table.cardable td { display: grid; grid-template-columns: minmax(96px, 36%) minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 4px 0; border: 0; background: transparent; }
+  table.cardable td[data-cell="field"]::before { content: attr(data-label); color: var(--muted); font-size: 13px; }
+  table.cardable td[data-cell="title"] { display: block; font-weight: 700; font-size: 16px; padding-bottom: 6px; }
+  table.cardable td[data-cell="full"] { display: block; }
+  table.cardable td[data-cell="actions"] { display: block; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+  table.cardable td[data-cell="actions"] .row-actions { display: flex; flex-wrap: wrap; gap: 8px; white-space: normal; }
+  table.cardable td[data-cell="actions"] .btn { flex: 1 1 auto; min-height: 40px; }
+  table.cardable tr:hover td { background: transparent; }
+
+  /* Modais: bottom sheet; drawers em tela cheia */
+  .modal-back { padding: 0; place-items: end center; }
+  .modal, .modal.wide { width: 100%; max-height: 92dvh; border-radius: 16px 16px 0 0; }
+  .modal .modal-body { padding: 16px; }
+  .modal footer { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .modal footer .btn { width: 100%; }
+  .sheet { width: 100%; }
+  .sheet footer { flex-wrap: wrap; }
+  .sheet footer .btn { flex: 1 1 auto; }
+  .report-preview .modal { height: 100dvh; max-height: 100dvh; border-radius: 0; }
+
+  /* Feedback */
+  .toast { left: 12px; right: 12px; bottom: 12px; width: auto; }
+  .kv { grid-template-columns: 1fr; gap: 2px; }
+  .kv dd { margin-bottom: 8px; }
+}

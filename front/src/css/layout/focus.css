@@ -1,0 +1,16 @@
+.focus-app { min-height: 100vh; background: var(--bg); }
+.focus-bar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+.focus-bar strong { margin-right: auto; }
+.focus-app main { width: min(980px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 48px; }
+.focus-shell .focus-bar { position: sticky; top: 0; z-index: 20; gap: 12px; }
+.focus-title { margin-right: auto; font-size: 16px; }
+.focus-tools { margin-left: 0; }
+.focus-shell main { width: min(1180px, calc(100% - 32px)); padding: 20px 0 48px; }

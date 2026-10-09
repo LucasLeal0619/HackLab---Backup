@@ -1,0 +1,51 @@
+.btn {
+  border: 0;
+  border-radius: var(--radius-sm);
+  min-height: var(--control);
+  padding: 0 16px;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 650;
+  font-size: var(--text-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  transition: background-color var(--ease), border-color var(--ease), color var(--ease);
+}
+.btn:hover { background: var(--orange-dark); }
+.btn.full { width: 100%; }
+.btn.ghost {
+  background: #fff;
+  color: var(--blue);
+  border: 1px solid var(--line-strong);
+}
+.btn.ghost:hover { background: var(--surface); }
+.btn.navy { background: var(--blue); }
+.btn.navy:hover { background: var(--blue-dark); }
+.btn.danger { background: var(--danger); }
+.btn.danger:hover { background: #93281f; }
+.btn.small { min-height: 32px; padding: 0 10px; font-size: var(--text-sm); }
+.btn:disabled { opacity: .72; cursor: not-allowed; }
+td .btn + .btn, td .btn + button { margin-left: 8px; }
+.choice {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  text-align: left;
+  width: 100%;
+}
+.choice:hover { border-color: var(--blue); }
+.choice.on { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(242,145,0,.2); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.chip:hover { border-color: var(--blue); }
+.chip.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+.card .btn.small { margin-top: 8px; }

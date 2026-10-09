@@ -1,0 +1,19 @@
+/* Colaboração entre setores (Pendências e Ocorrências): setores, histórico e atualizações */
+.demand-activity { margin-top: 8px; }
+.demand-forward { margin-top: 8px; }
+.demand-comment { display: grid; gap: 8px; margin: 0 0 12px; }
+.demand-comment .btn { justify-self: end; }
+.demand-history { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.demand-history li { padding: 10px 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--line-strong); background: var(--surface); }
+.demand-history li.comment { border-left-color: var(--blue); background: var(--info-bg); }
+.demand-history-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 13px; }
+.demand-history-head span, .demand-history-head time { color: var(--muted); }
+.demand-history-head time { margin-left: auto; }
+.demand-history p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.related-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.related-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.related-list li > span { flex: 1 1 200px; }
+@media (max-width: 767px) {
+  .demand-comment .btn { justify-self: stretch; }
+  .related-list .btn { flex: 1 1 100%; }
+}

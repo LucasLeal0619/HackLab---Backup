@@ -1,0 +1,81 @@
+.shell { height: 100vh; display: grid; grid-template-columns: var(--sidebar) 1fr; overflow: hidden; }
+.workspace { min-width: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+.topbar {
+  height: 64px;
+  flex: 0 0 64px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.top-title { margin: 0; font-size: 16px; font-weight: 650; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.tool { position: relative; display: flex; align-items: center; }
+.menu-btn { display: none; }
+.icon-btn.menu-btn { display: none; }
+.icon-btn, .user-btn, .a11y-btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  color: var(--text);
+}
+.icon-btn { width: 36px; height: 36px; justify-content: center; align-items: center; padding: 0; position: relative; line-height: 0; }
+.icon-btn svg { display: block; }
+.dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: var(--orange);
+  border-radius: 50%;
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e7eef6;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+}
+.user-meta { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; }
+.user-meta b { font-size: 13px; }
+.user-meta span { font-size: 11px; color: var(--blue); display: flex; align-items: center; gap: 4px; }
+.content {
+  width: min(var(--content), calc(100% - var(--space-8)));
+  margin: 0 auto;
+  padding: var(--space-6) 0 var(--space-12);
+}
+.dot-status { width: 8px; height: 8px; border-radius: 50%; background: #9aafc4; }
+.dot-status.warn { background: var(--orange); }
+.dot-status.ok { background: var(--ok); }
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(242, 145, 0, .14);
+  color: #8a5600;
+  font-size: 12px;
+  font-weight: 700;
+}
+/* Barra superior administrativa em celular: mantém só ícones para não gerar scroll horizontal. */
+@media (max-width: 560px) {
+  .topbar .demo-badge { display: none; }
+  .topbar .a11y-label { display: none; }
+  .topbar .user-meta { display: none; }
+}
+/* Shell: navegação vira drawer em tablet e celular */
+.nav-close, .top-brand, .nav-backdrop { display: none; }

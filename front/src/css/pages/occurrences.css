@@ -1,0 +1,3 @@
+.occ-filters .input, .occ-filters select.input { flex: 1 1 120px; max-width: none; }
+/* Primeiro filtro avançado (Categoria) ocupa mais espaço na linha. */
+.occ-filters .filter-more > .input:first-child { flex: 2 1 200px; }

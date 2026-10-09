@@ -1,0 +1,73 @@
+html.reduce-motion .nav-sub,
+html.reduce-motion .nav-caret,
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+html.focus-strong :focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+}
+html[data-spacing="confortavel"] { line-height: 1.55; }
+html[data-spacing="amplo"] { line-height: 1.75; }
+html[data-spacing="amplo"] .content { letter-spacing: 0.01em; }
+html.contrast {
+  --blue: #000;
+  --blue-dark: #000;
+  --bg: #fff;
+  --card: #fff;
+  --text: #000;
+  --muted: #111;
+  --line: #000;
+  --orange: #000;
+}
+html.contrast body, html.contrast .sidebar, html.contrast .login-side { background: #000; color: #fff; }
+html.contrast .card, html.contrast .modal, html.contrast .topbar, html.contrast .login-card { border: 2px solid #000; }
+html.contrast .card,
+html.contrast .modal,
+html.contrast .sheet,
+html.contrast .popover,
+html.contrast .topbar,
+html.contrast .table-wrap,
+html.contrast .results-wait,
+html.contrast .eval-row,
+html.contrast .vote-admin,
+html.contrast .login-card,
+html.contrast .banner,
+html.contrast .input,
+html.contrast select.input,
+html.contrast textarea.input {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+html.contrast .card .stat-hint,
+html.contrast .card p,
+html.contrast .card h3,
+html.contrast .card .stat-value,
+html.contrast .modal,
+html.contrast .sheet,
+html.contrast .table-wrap th,
+html.contrast .table-wrap td,
+html.contrast .results-wait,
+html.contrast .results-wait p,
+html.contrast .eval-row,
+html.contrast .vote-admin,
+html.contrast .popover { color: #000; }
+html.contrast .page-head p,
+html.contrast .crumbs,
+html.contrast .ops-title,
+html.contrast .stat-hint { color: #fff; }
+html.contrast .btn { background: #000; color: #fff; border: 2px solid #fff; }
+html.contrast .btn.ghost { background: #fff; color: #000; border: 2px solid #000; }
+html.contrast .badge { background: #fff; color: #000; border: 1px solid #000; }
+html.contrast .results-block h2 { color: #fff; }
+html.contrast .dash-block-title,
+html.contrast .dash-lines a,
+html.contrast .dash-sector-name,
+html.contrast .dash-more { color: #000; }
+html.contrast .results-wait h2,
+html.contrast .vote-admin h2,
+html.contrast .vote-admin .ops-title,
+html.contrast .vote-admin .stat-hint { color: #000; }
+html.contrast .nav-item.active { box-shadow: inset 3px 0 0 #fff; }

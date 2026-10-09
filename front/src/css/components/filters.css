@@ -1,0 +1,11 @@
+.filters { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+.filters .input, .filters select.input { width: auto; min-width: 180px; }
+.filters .input-icon { flex: 1 1 220px; max-width: 320px; min-width: 200px; }
+.filters .field { margin: 0; min-width: 180px; flex: 1 1 180px; max-width: 240px; }
+.filters .field .input { width: 100%; min-width: 0; }
+/* Barra de filtros (FilterPanel): linha no desktop, painel no celular */
+.filter-panel { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-4); flex: 1 1 auto; min-width: 0; }
+.filter-main, .filter-more { display: contents; }
+.filter-panel .input, .filter-panel select.input { width: auto; min-width: 160px; }
+.filter-main > .input:first-child { flex: 1 1 240px; max-width: 360px; }
+.filter-toggle, .filter-panel-actions { display: none; }

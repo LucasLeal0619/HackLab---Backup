@@ -1,0 +1,57 @@
+:root {
+  --blue: #00498c;
+  --blue-dark: #00386c;
+  --blue-mid: #0c5ea3;
+  --orange: #f29100;
+  --orange-dark: #d97f00;
+  --orange-soft: #fff4e5;
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --surface: #f7f9fb;
+  --line: #e4e9ef;
+  --line-strong: #d5dde6;
+  --text: #1b2836;
+  --muted: #4e5e6e;
+  --disabled: #5d6b7a;
+  --ok: #1d7a45;
+  --ok-bg: #e8f6ee;
+  --warn: #9a6400;
+  --warn-bg: #fff4df;
+  --info: #00498c;
+  --info-bg: #e8f1fa;
+  --danger: #b4332a;
+  --danger-bg: #fdeceb;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 2px rgba(16, 42, 67, 0.05);
+  --shadow-raised: 0 16px 40px rgba(16, 42, 67, 0.16);
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 15px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 30px;
+  --content: 1180px;
+  --control: 40px;
+  --sidebar: 304px;
+  --ease: 160ms ease;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+/* ======================================================================
+   Spec 20 — responsividade global
+   Mobile < 768px · Tablet 768–1199px · Desktop >= 1200px
+   ====================================================================== */
+:root { --touch: 44px; }

@@ -1,0 +1,10 @@
+.table-wrap { overflow-x: auto; max-width: 100%; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-md); }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; overflow-wrap: anywhere; }
+th { font-size: var(--text-xs); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--surface); font-weight: 650; }
+tbody tr { transition: background-color var(--ease); }
+tbody tr:hover td { background: #f8fafc; }
+tr:last-child td { border-bottom: 0; }
+.matrix td, .matrix th { font-size: 13px; }
+/* Textos longos (e-mails, empresas, desafios) quebram sem estourar cards e células */
+td, dd, .card p, .card h3, .attendance-card p, .dash-actions span { overflow-wrap: anywhere; }

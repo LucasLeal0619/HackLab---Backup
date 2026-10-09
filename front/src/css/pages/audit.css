@@ -1,0 +1,7 @@
+/* Auditoria (somente leitura) */
+.audit-note { margin-bottom: 12px; }
+.audit-changes { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.audit-changes li { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.audit-changes li > span { font-size: 13px; color: var(--muted); }
+.audit-changes p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.audit-changes s { color: var(--muted); }
