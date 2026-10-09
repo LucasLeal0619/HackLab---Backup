@@ -23,6 +23,12 @@ enum PermissionCode: string
     case SectorsManage = 'sectors.manage';
     case MeetingsView = 'meetings.view';
     case MeetingsManage = 'meetings.manage';
+    case ClassesView = 'classes.view';
+    case ClassesManage = 'classes.manage';
+    case ParticipantsView = 'participants.view';
+    case ParticipantsManage = 'participants.manage';
+    case TeamsView = 'teams.view';
+    case TeamsManage = 'teams.manage';
 
     public function label(): string
     {
@@ -39,6 +45,12 @@ enum PermissionCode: string
             self::SectorsManage => 'Gerenciar setores (no escopo do usuário)',
             self::MeetingsView => 'Consultar reuniões (no escopo do usuário)',
             self::MeetingsManage => 'Gerenciar reuniões (no escopo do usuário)',
+            self::ClassesView => 'Consultar turmas',
+            self::ClassesManage => 'Cadastrar, editar, ativar/inativar turmas',
+            self::ParticipantsView => 'Consultar participantes',
+            self::ParticipantsManage => 'Cadastrar e editar participantes',
+            self::TeamsView => 'Consultar equipes e composição',
+            self::TeamsManage => 'Cadastrar equipes e gerenciar membros',
         };
     }
 
@@ -55,12 +67,15 @@ enum PermissionCode: string
                 self::PeopleView, self::EventsView,
                 self::SectorsView, self::SectorsManage,
                 self::MeetingsView, self::MeetingsManage,
+                self::ClassesView, self::ParticipantsView, self::TeamsView,
             ],
             RoleCode::Editor->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
+                self::ClassesView, self::ParticipantsView, self::TeamsView,
             ],
             RoleCode::Consultant->value => [
                 self::PeopleView, self::EventsView, self::SectorsView, self::MeetingsView,
+                self::ClassesView, self::ParticipantsView, self::TeamsView,
             ],
             RoleCode::Juror->value => [self::EventsView],
             RoleCode::Voter->value => [self::EventsView],

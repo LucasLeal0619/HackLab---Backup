@@ -3,7 +3,7 @@
 namespace App\Domain\Audit;
 
 /**
- * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings.
+ * Ações auditadas. Módulos: auth, users, people, events, sectors, meetings, classes, participants, teams.
  */
 final class AuditAction
 {
@@ -50,4 +50,29 @@ final class AuditAction
     public const MEETING_CREATED = 'MEETING_CREATED';
 
     public const MEETING_UPDATED = 'MEETING_UPDATED';
+
+    public const CLASS_CREATED = 'CLASS_CREATED';
+
+    public const CLASS_UPDATED = 'CLASS_UPDATED';
+
+    public const CLASS_ACTIVATED = 'CLASS_ACTIVATED';
+
+    public const CLASS_INACTIVATED = 'CLASS_INACTIVATED';
+
+    public const PARTICIPANT_CREATED = 'PARTICIPANT_CREATED';
+
+    public const PARTICIPANT_UPDATED = 'PARTICIPANT_UPDATED';
+
+    public const PARTICIPANT_STATUS_CHANGED = 'PARTICIPANT_STATUS_CHANGED';
+
+    public const TEAM_CREATED = 'TEAM_CREATED';
+
+    public const TEAM_UPDATED = 'TEAM_UPDATED';
+
+    public const PARTICIPANT_ADDED_TO_TEAM = 'PARTICIPANT_ADDED_TO_TEAM';
+
+    public const PARTICIPANT_REMOVED_FROM_TEAM = 'PARTICIPANT_REMOVED_FROM_TEAM';
+
+    /** Movimentação entre equipes: um único log com before/after. */
+    public const PARTICIPANT_TEAM_CHANGED = 'PARTICIPANT_TEAM_CHANGED';
 }

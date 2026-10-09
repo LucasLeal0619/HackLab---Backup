@@ -106,13 +106,32 @@ Endpoints entregues (`/api/v1`):
 
 ## Fase 3 — Participantes e equipes
 
-- [ ] classes;
-- [ ] participants;
-- [ ] teams;
-- [ ] team_members;
-- [ ] regras de status;
-- [ ] impedir membro ativo em múltiplas equipes;
-- [ ] endpoints de ajuste manual.
+- [x] classes;
+- [x] participants;
+- [x] teams (sem `challenge_id`, que entra na Fase 4);
+- [x] team_members (com histórico);
+- [x] regras de status;
+- [x] impedir membro ativo em múltiplas equipes (aplicação + índice único parcial no banco);
+- [x] endpoints de ajuste manual (adicionar, mover, remover);
+- [x] permissões/policies, auditoria, factories e seeds.
+
+Concluída em 09/10/2026 (aguardando aprovação para commit): 154 testes passando em `hacklab_test` dentro do Docker, 16 migrations do zero, seed idempotente, `db-check`, Pint, movimentação validada via HTTP com cookies reais (um único log), nenhuma tabela em `public`, `hacklab_dev` intacto após os testes.
+
+Endpoints entregues (`/api/v1`):
+
+| Método | Rota | Acesso |
+|---|---|---|
+| GET/POST | `/events/{event}/classes` | `classes.view` / `classes.manage` |
+| GET/PATCH | `/classes/{class}` | `classes.view` / `classes.manage` |
+| PATCH | `/classes/{class}/status` | `classes.manage` |
+| GET/POST | `/events/{event}/participants` | `participants.view` / `participants.manage`. Filtros: `class_id`, `status`, `has_team`, `team_id`, `search` |
+| GET/PATCH | `/participants/{participant}` | `participants.view` (inclui histórico de equipes) / `participants.manage` |
+| PATCH | `/participants/{participant}/team` | `teams.manage` — adiciona ou move |
+| GET/POST | `/events/{event}/teams` | `teams.view` / `teams.manage` |
+| GET/PATCH | `/teams/{team}` | `teams.view` (composição atual) / `teams.manage` |
+| GET | `/teams/{team}/members` | `teams.view`; `?history=1` inclui vínculos encerrados |
+| POST | `/teams/{team}/members` | `teams.manage` |
+| DELETE | `/teams/{team}/members/{participant}` | `teams.manage` — encerra o vínculo |
 
 Não implementar formação inteligente complexa antes do CRUD e regras básicas estarem estáveis.
 

@@ -20,6 +20,7 @@ class MigrationsTest extends TestCase
             'migrations', 'sessions', 'cache', 'jobs', 'personal_access_tokens',
             'people', 'roles', 'permissions', 'role_permission', 'users', 'audit_logs',
             'events', 'event_days', 'sectors', 'meetings',
+            'classes', 'participants', 'teams', 'team_members',
         ];
 
         foreach ($tables as $table) {

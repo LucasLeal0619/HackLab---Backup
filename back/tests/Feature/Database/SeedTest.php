@@ -5,8 +5,12 @@ namespace Tests\Feature\Database;
 use App\Models\Event;
 use App\Models\EventDay;
 use App\Models\Meeting;
+use App\Models\Participant;
 use App\Models\Role;
+use App\Models\SchoolClass;
 use App\Models\Sector;
+use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevelopmentAdminSeeder;
@@ -42,6 +46,10 @@ class SeedTest extends TestCase
         $this->assertSame(3, EventDay::query()->count());
         $this->assertSame(2, Sector::query()->count());
         $this->assertSame(1, Meeting::query()->count());
+        $this->assertSame(3, SchoolClass::query()->count());
+        $this->assertSame(12, Participant::query()->count());
+        $this->assertSame(2, Team::query()->count());
+        $this->assertSame(8, TeamMember::query()->where('active', true)->count());
     }
 
     public function test_development_admin_exists_in_testing_linked_to_a_person(): void

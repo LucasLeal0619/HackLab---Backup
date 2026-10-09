@@ -32,6 +32,8 @@ Esses conceitos não são sinônimos.
 - Status possíveis devem suportar ao menos: disponível, indisponível, desistente.
 - Mudança de disponibilidade não deve reembaralhar automaticamente equipes já formadas.
 - Ajustes manuais são permitidos.
+- Participante sem turma é permitido; turma inativa não recebe novos participantes.
+- A mesma pessoa não pode ser dois participantes do mesmo evento.
 
 ## 3. Equipes
 
@@ -40,6 +42,10 @@ Esses conceitos não são sinônimos.
 - Formação deve tentar equilibrar turmas quando possível.
 - Não forçar equilíbrio impossível.
 - Equipe pode ser vinculada a desafio.
+- Equipe não pertence a turma: reúne alunos de várias turmas.
+- Só participante `AVAILABLE` entra em equipe (adicionar ou mover); `UNAVAILABLE`/`WITHDRAWN` mantém o vínculo que já tinha.
+- Remover e mover são ações explícitas e preservam o histórico.
+- Formação automática ainda não existe; quando existir, usa as mesmas operações do `TeamService`.
 
 ## 4. Perfis e setores
 

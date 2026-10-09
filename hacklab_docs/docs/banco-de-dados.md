@@ -213,10 +213,18 @@ Permissões iniciais (Fase 1), definidas em `App\Domain\Users\Enums\PermissionCo
 | `sectors.manage` | ✓ | ✓ | | | | |
 | `meetings.view` | ✓ | ✓ | ✓ | ✓ | | |
 | `meetings.manage` | ✓ | ✓ | | | | |
+| `classes.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `classes.manage` | ✓ | | | | | |
+| `participants.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `participants.manage` | ✓ | | | | | |
+| `teams.view` | ✓ | ✓ | ✓ | ✓ | | |
+| `teams.manage` | ✓ | | | | | |
 
 Qualquer usuário vê a própria conta e o próprio cadastro de pessoa. Novas permissões entram junto com os módulos que as usam.
 
 **Escopo (Fase 2):** a Policy combina permissão + escopo. Quem tem setor (Gestor, Editor) só alcança o próprio setor; quem não tem setor (Administrador, Consultor) tem alcance global, limitado pelas permissões. Criar setor, ativar/inativar setor e gerenciar evento e reunião geral exigem alcance global.
+
+Turmas, participantes e equipes (Fase 3) são globais ao evento: só permissão, sem escopo setorial e sem `sector_id`.
 
 ### events
 
@@ -267,6 +275,8 @@ updated_at
 
 Não hardcode Breno/Rafael/Clara no schema.
 
+Implementado na Fase 3 (model `SchoolClass`, porque `class` é palavra reservada no PHP). Nome único por evento sem diferença de caixa; `unique(id, event_id)` como alvo de FK composta. Turma inativa continua existindo (histórico) e mantém seus participantes, mas não recebe novos.
+
 ### participants
 
 Somente alunos do Hackathon.
@@ -292,6 +302,13 @@ UNAVAILABLE
 WITHDRAWN
 ```
 
+Implementado na Fase 3:
+- status com check no banco e enum `ParticipantStatus`;
+- FK composta `(class_id, event_id) → classes(id, event_id)`: a turma é sempre do mesmo evento;
+- `unique(id, event_id)` como alvo da FK composta de `team_members`;
+- identidade (nome, e-mail, telefone) só em `people`, nunca duplicada aqui;
+- mudar o status **não** altera o vínculo com equipe.
+
 ### teams
 
 ```text
@@ -305,6 +322,8 @@ created_at
 updated_at
 ```
 
+Implementado na Fase 3 **sem `challenge_id`** (entra na Fase 4, junto com `challenges`). Status `ACTIVE | INACTIVE` (check). Nome e código únicos por evento sem diferença de caixa. Equipe não pertence a turma. Equipe inativa não recebe membros e só é inativada sem membros ativos.
+
 ### team_members
 
 ```text
@@ -317,6 +336,13 @@ active
 ```
 
 Regra: um participante só pode ter um vínculo ativo de equipe por evento.
+
+Implementado na Fase 3, com `event_id` na tabela para as garantias no banco:
+- `unique(participant_id) where active`: no máximo um vínculo ativo por participante (o participante já é de um único evento);
+- FKs compostas `(team_id, event_id) → teams` e `(participant_id, event_id) → participants`: equipe e participante do mesmo evento;
+- check `(active and left_at is null) or (not active and left_at is not null)` e `left_at >= joined_at`;
+- vínculos nunca são apagados: remover = `active=false` + `left_at`; mover = encerrar o antigo e abrir o novo na mesma transação (um único log `PARTICIPANT_TEAM_CHANGED`);
+- sem tamanho fixo de equipe.
 
 ### companies
 

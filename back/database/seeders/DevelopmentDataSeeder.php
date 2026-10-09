@@ -4,18 +4,25 @@ namespace Database\Seeders;
 
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Meetings\Enums\MeetingStatus;
+use App\Domain\Participants\Enums\ParticipantStatus;
+use App\Domain\Teams\Enums\TeamStatus;
 use App\Domain\Users\Enums\RoleCode;
 use App\Domain\Users\Enums\UserStatus;
 use App\Models\Event;
+use App\Models\Participant;
 use App\Models\Person;
 use App\Models\Role;
+use App\Models\SchoolClass;
 use App\Models\Sector;
+use App\Models\Team;
+use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
  * Dados FICTÍCIOS de desenvolvimento: um evento de exemplo com 3 dias, 2 setores,
- * um Gestor e um Editor de exemplo e uma reunião geral. Só roda em local/testing.
+ * um Gestor e um Editor de exemplo, uma reunião geral, 3 turmas, 12 participantes
+ * e 2 equipes com alguns membros. Só roda em local/testing.
  *
  * O código do sistema não depende desses dados (nomes, datas e número de dias vêm do banco).
  */
@@ -65,6 +72,42 @@ class DevelopmentDataSeeder extends Seeder
                 'status' => MeetingStatus::Scheduled,
                 'created_by_user_id' => $admin->id,
             ]);
+        }
+
+        $this->participantsAndTeams($event);
+    }
+
+    private function participantsAndTeams(Event $event): void
+    {
+        $classes = collect(range(1, 3))->map(fn (int $n) => SchoolClass::query()->firstOrCreate(
+            ['event_id' => $event->id, 'name' => "Turma Exemplo {$n}"],
+            ['active' => true],
+        ));
+
+        $teams = collect(range(1, 2))->map(fn (int $n) => Team::query()->firstOrCreate(
+            ['event_id' => $event->id, 'name' => "Equipe Exemplo {$n}"],
+            ['code' => "EX{$n}", 'status' => TeamStatus::Active],
+        ));
+
+        foreach (range(1, 12) as $n) {
+            $email = sprintf('participante%02d@hacklab.local', $n);
+            $person = Person::query()->firstOrCreate(['email' => $email], ['full_name' => sprintf('Participante Exemplo %02d', $n)]);
+
+            $participant = Participant::query()->firstOrCreate(
+                ['event_id' => $event->id, 'person_id' => $person->id],
+                ['class_id' => $classes[($n - 1) % 3]->id, 'status' => ParticipantStatus::Available],
+            );
+
+            // Os 8 primeiros em equipes (alternando turmas); os demais ficam sem equipe.
+            if ($n <= 8 && ! TeamMember::query()->where('participant_id', $participant->id)->exists()) {
+                TeamMember::query()->create([
+                    'event_id' => $event->id,
+                    'team_id' => $teams[($n - 1) % 2]->id,
+                    'participant_id' => $participant->id,
+                    'joined_at' => now(),
+                    'active' => true,
+                ]);
+            }
         }
     }
 

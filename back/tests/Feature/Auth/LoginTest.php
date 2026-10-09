@@ -22,7 +22,8 @@ class LoginTest extends DatabaseTestCase
             ->assertJsonPath('data.person.id', $user->person_id)
             ->assertJsonPath('data.sector.id', $user->sector_id)
             ->assertJsonPath('data.permissions', [
-                'events.view', 'meetings.manage', 'meetings.view', 'people.view', 'sectors.manage', 'sectors.view',
+                'classes.view', 'events.view', 'meetings.manage', 'meetings.view', 'participants.view',
+                'people.view', 'sectors.manage', 'sectors.view', 'teams.view',
             ])
             ->assertJsonMissingPath('data.password');
 

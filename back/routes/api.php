@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ClassController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\EventDayController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\MeetingController;
+use App\Http\Controllers\Api\V1\ParticipantController;
 use App\Http\Controllers\Api\V1\PersonController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\SectorController;
+use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
@@ -50,5 +53,25 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::post('/events/{event}/meetings', [MeetingController::class, 'store'])->name('events.meetings.store');
         Route::get('/meetings/{meeting}', [MeetingController::class, 'show'])->name('meetings.show');
         Route::patch('/meetings/{meeting}', [MeetingController::class, 'update'])->name('meetings.update');
+
+        Route::get('/events/{event}/classes', [ClassController::class, 'index'])->name('events.classes.index');
+        Route::post('/events/{event}/classes', [ClassController::class, 'store'])->name('events.classes.store');
+        Route::get('/classes/{class}', [ClassController::class, 'show'])->name('classes.show');
+        Route::patch('/classes/{class}', [ClassController::class, 'update'])->name('classes.update');
+        Route::patch('/classes/{class}/status', [ClassController::class, 'updateStatus'])->name('classes.status');
+
+        Route::get('/events/{event}/participants', [ParticipantController::class, 'index'])->name('events.participants.index');
+        Route::post('/events/{event}/participants', [ParticipantController::class, 'store'])->name('events.participants.store');
+        Route::get('/participants/{participant}', [ParticipantController::class, 'show'])->name('participants.show');
+        Route::patch('/participants/{participant}', [ParticipantController::class, 'update'])->name('participants.update');
+        Route::patch('/participants/{participant}/team', [ParticipantController::class, 'updateTeam'])->name('participants.team');
+
+        Route::get('/events/{event}/teams', [TeamController::class, 'index'])->name('events.teams.index');
+        Route::post('/events/{event}/teams', [TeamController::class, 'store'])->name('events.teams.store');
+        Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+        Route::patch('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
+        Route::get('/teams/{team}/members', [TeamController::class, 'members'])->name('teams.members.index');
+        Route::post('/teams/{team}/members', [TeamController::class, 'addMember'])->name('teams.members.store');
+        Route::delete('/teams/{team}/members/{participant}', [TeamController::class, 'removeMember'])->name('teams.members.destroy');
     });
 });

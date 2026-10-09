@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\TeamMember;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin TeamMember
+ */
+class TeamMemberResource extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'team' => $this->whenLoaded('team', fn () => ['id' => $this->team->id, 'name' => $this->team->name]),
+            'participant' => $this->whenLoaded('participant', fn () => [
+                'id' => $this->participant->id,
+                'full_name' => $this->participant->person?->full_name,
+                'status' => $this->participant->status?->value,
+                'class' => $this->participant->schoolClass === null ? null : [
+                    'id' => $this->participant->schoolClass->id,
+                    'name' => $this->participant->schoolClass->name,
+                ],
+            ]),
+            'active' => $this->active,
+            'joined_at' => $this->joined_at?->toIso8601String(),
+            'left_at' => $this->left_at?->toIso8601String(),
+        ];
+    }
+}
